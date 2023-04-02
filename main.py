@@ -12,16 +12,20 @@ SIZE_OF_COMPARISON_POINT_SAMPLE = 2000
 
 
 def main():
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
 
     # ensure reproducibility of random numbers
     rng = np.random.default_rng(seed=42)
 
     dataset = Dataset.load_tift(PATH)
     mask = dataset.extract_mask()
-    reference_builder = ReferenceBuilder(mask)
+    mask.save("mask.npz")
+    mask = Mask.load("mask.npz")
+    reference_builder = ReferenceBuilder(mask=mask)
     reference_builder.sample(N, rng)
     reference = reference_builder.build(dataset)
+
+    ### NOT YET IMPLEMENTED IN NEW VERSION ###
     # print("Creating projection...")
     # projection = create_projection(NUM_OF_PRINCIPAL_COMPONENTS,
     #                                reference_points, SIZE_OF_COMPARISON_POINT_SAMPLE, dataset)
