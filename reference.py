@@ -4,7 +4,7 @@ import logging
 
 
 class ReferenceBuilder:
-    def __init__(self, dimensions=None, *, mask=None):
+    def __init__(self, dimensions=None, mask=None):
         """
         Either dimensions or mask must be specified.
         """
@@ -15,7 +15,7 @@ class ReferenceBuilder:
             self.dimensions = mask.dimensions
         self.points = None
 
-    def sample(self, n, *, rng=None):
+    def sample(self, n, rng=None):
         """
         Sample n points.
         """
@@ -30,13 +30,36 @@ class ReferenceBuilder:
 
         i = 0
         while i < n:
-            point = rng.integers(0, self.dimensions, size=3)
+            point = rng.integers(self.dimensions, size=3)
             if self.mask is None or self.mask[point]:
                 if tuple(point) not in points_so_far:
                     self.points[i] = point
                     points_so_far.add(tuple(point))
                     i += 1
 
+    def save(self, path):
+        np.savez_compressed(path, points=self.points)
+
+    @classmethod
+    def load(cls, path):
+        data = np.load(path)
+        reference_builder = cls()
+        reference_builder.points = data['points']
+        return reference_builder
+
+    def __len__(self):
+        return len(self.points)
+
+    def build(self, dataset):
+        """
+        Build a reference from the sampled points.
+        """
+        reference = Reference(len(self), dataset.time_series_length)
+        for i, point in enumerate(self.points):
+            reference.data[i] = dataset[point]
+        return reference
+
 
 class Reference:
-    ...
+    def __init__(self, n, time_series_length):
+        self.data = np.zeros((n, time_series_length), dtype=np.float64)

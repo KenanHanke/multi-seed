@@ -1,5 +1,6 @@
 from dataset import Dataset
 from image import Image, Mask
+from reference import ReferenceBuilder, Reference
 import logging
 import numpy as np
 
@@ -18,8 +19,9 @@ def main():
 
     dataset = Dataset.load_tift(PATH)
     mask = dataset.extract_mask()
-    # print("Sampling reference points...")
-    # reference_points = sample_coords(N, dataset)
+    reference_builder = ReferenceBuilder(mask)
+    reference_builder.sample(N, rng)
+    reference = reference_builder.build(dataset)
     # print("Creating projection...")
     # projection = create_projection(NUM_OF_PRINCIPAL_COMPONENTS,
     #                                reference_points, SIZE_OF_COMPARISON_POINT_SAMPLE, dataset)
