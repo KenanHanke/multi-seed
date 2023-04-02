@@ -1,0 +1,42 @@
+from rbloom import Bloom
+import numpy as np
+import logging
+
+
+class ReferenceBuilder:
+    def __init__(self, dimensions=None, *, mask=None):
+        """
+        Either dimensions or mask must be specified.
+        """
+        self.mask = mask
+        if mask is None:
+            self.dimensions = dimensions
+        else:
+            self.dimensions = mask.dimensions
+        self.points = None
+
+    def sample(self, n, *, rng=None):
+        """
+        Sample n points.
+        """
+        logging.debug('Sampling %d points', n)
+
+        self.points = np.empty((n, 3), dtype=np.int16)
+
+        if rng is None:
+            rng = np.random.default_rng()
+
+        points_so_far = Bloom(n*1000, 0.01)
+
+        i = 0
+        while i < n:
+            point = rng.integers(0, self.dimensions, size=3)
+            if self.mask is None or self.mask[point]:
+                if tuple(point) not in points_so_far:
+                    self.points[i] = point
+                    points_so_far.add(tuple(point))
+                    i += 1
+
+
+class Reference:
+    ...
