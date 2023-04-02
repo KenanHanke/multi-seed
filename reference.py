@@ -19,7 +19,7 @@ class ReferenceBuilder:
         """
         Sample n points.
         """
-        logging.debug('Sampling %d points', n)
+        logging.info('Sampling %d points', n)
 
         self.points = np.empty((n, 3), dtype=np.int16)
 
@@ -54,7 +54,7 @@ class ReferenceBuilder:
         """
         Build a reference from the sampled points.
         """
-        logging.debug('Building reference from %d points', len(self))
+        logging.info('Building reference from %d points', len(self))
 
         reference = Reference(len(self), dataset.time_series_length)
         for i, point in enumerate(self.points):
@@ -63,5 +63,10 @@ class ReferenceBuilder:
 
 
 class Reference:
+    """
+    Contains a set of reference time series to which correlation
+    coefficients can be computed.
+    """
+
     def __init__(self, n, time_series_length):
         self.data = np.zeros((n, time_series_length), dtype=np.float64)

@@ -18,10 +18,12 @@ class Dataset:
 
     @classmethod
     def load(cls, file_path):
+        logging.info('Loading dataset from %s', file_path)
         data = np.load(file_path)['data']
         return cls(data=data)
 
     def save(self, file_path):
+        logging.info('Saving dataset to %s', file_path)
         np.savez_compressed(file_path, data=self.data)
 
     @classmethod

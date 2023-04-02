@@ -13,10 +13,12 @@ class Image:
 
     @classmethod
     def load(cls, path):
+        logging.debug('Loading image from %s', path)
         data = np.load(path)['data']
         return cls(data=data)
 
     def save(self, path):
+        logging.debug('Saving image to %s', path)
         np.savez_compressed(path, data=self.data)
 
     @classmethod

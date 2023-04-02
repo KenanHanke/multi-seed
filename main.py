@@ -17,10 +17,12 @@ def main():
     # ensure reproducibility of random numbers
     rng = np.random.default_rng(seed=42)
 
-    dataset = Dataset.load_tift(PATH)
+    # dataset = Dataset.load_tift(PATH)
+    # dataset.save("dataset.npz")
+    dataset = Dataset.load("dataset.npz")
     mask = dataset.extract_mask()
     mask.save("mask.npz")
-    mask = Mask.load("mask.npz")
+    # mask = Mask.load("mask.npz")
     reference_builder = ReferenceBuilder(mask=mask)
     reference_builder.sample(N, rng)
     reference = reference_builder.build(dataset)
