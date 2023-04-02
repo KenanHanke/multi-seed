@@ -21,7 +21,7 @@ class Image:
 
     @classmethod
     def load_tift(cls, path):
-        logging.info('Loading image from %s', path)
+        logging.debug('Loading image from %s', path)
 
         dimensions = (256,)*3
         image = cls(dimensions, dtype=TIFT_DTYPE)
@@ -31,7 +31,7 @@ class Image:
         return image
 
     def save_tift(self, path):
-        logging.info('Saving image to %s', path)
+        logging.debug('Saving image to %s', path)
 
         with gzip.open(path, 'wb') as f:
             f.write(self.data.tobytes())
