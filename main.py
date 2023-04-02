@@ -12,7 +12,9 @@ SIZE_OF_COMPARISON_POINT_SAMPLE = 2000
 
 
 def main():
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(
+        format="[%(levelname)s %(asctime)s]  %(message)s",
+        level=logging.DEBUG)
 
     # ensure reproducibility of random numbers
     rng = np.random.default_rng(seed=42)
@@ -20,9 +22,9 @@ def main():
     # dataset = Dataset.load_tift(PATH)
     # dataset.save("dataset.npz")
     dataset = Dataset.load("dataset.npz")
-    mask = dataset.extract_mask()
-    mask.save("mask.npz")
-    # mask = Mask.load("mask.npz")
+    # mask = dataset.extract_mask()
+    # mask.save("mask.npz")
+    mask = Mask.load("mask.npz")
     reference_builder = ReferenceBuilder(mask=mask)
     reference_builder.sample(N, rng)
     reference = reference_builder.build(dataset)
