@@ -13,7 +13,7 @@ SIZE_OF_COMPARISON_POINT_SAMPLE = 2000
 
 def main():
     logging.basicConfig(
-        format="[%(levelname)s %(asctime)s]  %(message)s",
+        format="[%(levelname)s %(asctime)s] %(message)s",
         level=logging.DEBUG)
 
     # ensure reproducibility of random numbers
