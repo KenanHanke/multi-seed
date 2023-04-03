@@ -8,7 +8,7 @@ from constants import TIFT_DTYPE
 
 
 class Dataset:
-    def __init__(self, dimensions=None, time_series_length=None, *, dtype=None, data=None):
+    def __init__(self, dimensions: tuple[int] = None, time_series_length: int = None, *, dtype=None, data=None):
         if data is not None:
             self.data = data
         else:

@@ -5,7 +5,7 @@ import logging
 
 
 class Image:
-    def __init__(self, dimensions=None, *, dtype=None, data=None):
+    def __init__(self, dimensions: tuple[int] = None, *, dtype=None, data=None):
         if data is not None:
             self.data = data
         else:
@@ -53,7 +53,7 @@ class Image:
 
 
 class Mask(Image):
-    def __init__(self, dimensions=None, *, dtype=bool, data=None):
+    def __init__(self, dimensions: tuple[int] = None, *, dtype=bool, data=None):
         super().__init__(dimensions, dtype=dtype, data=data)
 
     def __ior__(self, other: 'Mask'):

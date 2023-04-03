@@ -1,10 +1,11 @@
 from rbloom import Bloom
 import numpy as np
 import logging
+from image import Mask
 
 
 class ReferenceBuilder:
-    def __init__(self, *, dimensions=None, mask=None):
+    def __init__(self, *, dimensions: tuple[int] = None, mask: Mask = None):
         """
         Either dimensions or mask must be specified.
         """
@@ -15,7 +16,7 @@ class ReferenceBuilder:
             self.dimensions = mask.dimensions
         self.points = None
 
-    def sample(self, n, rng=None):
+    def sample(self, n: int, rng=None):
         """
         Sample n points.
         """
@@ -68,5 +69,5 @@ class Reference:
     coefficients can be computed.
     """
 
-    def __init__(self, n, time_series_length):
+    def __init__(self, n: int, time_series_length: int):
         self.data = np.zeros((n, time_series_length), dtype=np.float64)
