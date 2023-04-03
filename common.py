@@ -1,13 +1,15 @@
 import logging
 from dataset import Dataset
 from concurrent.futures import ThreadPoolExecutor
+from typing import Iterable
 
 
-def create_combined_mask(mask_path, dataset_generator: iter[Dataset]):
+def create_combined_mask(mask_path, dataset_generator: Iterable[Dataset]):
     """
     Accumulate a mask from the given datasets.
     """
     logging.info('Creating combined mask from datasets')
+    dataset_generator = iter(dataset_generator)
     try:
         first = next(dataset_generator)
     except StopIteration:
@@ -18,12 +20,12 @@ def create_combined_mask(mask_path, dataset_generator: iter[Dataset]):
     mask.save(mask_path)
 
 
-def tift_dataset_generator_sync(folder_paths: iter[str]):
+def tift_dataset_generator_sync(folder_paths: Iterable[str]):
     for path in folder_paths:
         yield Dataset.load_tift(path)
 
 
-def tift_dataset_generator_async(folder_paths: iter[str]):
+def tift_dataset_generator_async(folder_paths: Iterable[str]):
     """
     Load datasets asynchronously. Uses more memory, but makes sure
     that the next dataset is already loaded when the current one is

@@ -1,9 +1,11 @@
-from dataset import Dataset
-from image import Image, Mask
-from reference import ReferenceBuilder, Reference
 import logging
 import numpy as np
 from glob import glob
+
+from dataset import Dataset
+from image import Image, Mask
+from reference import ReferenceBuilder, Reference
+from common import *
 
 
 PATH = "/home/khanke/data/HypoPark/hypoPark/00CONVERTED/CON/REDACTED/fmri301/MNINorm/new_PreProcAll"
@@ -20,15 +22,21 @@ def main():
     # ensure reproducibility of random numbers
     rng = np.random.default_rng(seed=42)
 
-    # dataset = Dataset.load_tift(PATH)
-    # dataset.save("dataset.npz")
-    dataset = Dataset.load("dataset.npz")
-    # mask = dataset.extract_mask()
-    # mask.save("mask.npz")
-    mask = Mask.load("mask_combined.npz")
-    reference_builder = ReferenceBuilder(mask=mask)
-    reference_builder.sample(N, rng)
-    reference = reference_builder.build(dataset)
+    # # dataset = Dataset.load_tift(PATH)
+    # # dataset.save("dataset.npz")
+    # dataset = Dataset.load("dataset.npz")
+    # # mask = dataset.extract_mask()
+    # # mask.save("mask.npz")
+    # mask = Mask.load("mask_combined.npz")
+    # reference_builder = ReferenceBuilder(mask=mask)
+    # reference_builder.sample(N, rng)
+    # reference = reference_builder.build(dataset)
+
+    # test the async dataset generator
+    paths = glob(
+        "/home/khanke/data/HypoPark/hypoPark/00CONVERTED/*/*/fmri301/MNINorm/new_PreProcAll")
+    datasets = tift_dataset_generator_async(paths)
+    create_combined_mask("mask_combined2.npz", datasets)
 
     ##########################################
     ### NOT YET IMPLEMENTED IN NEW VERSION ###
