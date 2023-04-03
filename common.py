@@ -21,6 +21,7 @@ def create_combined_mask(mask_path, dataset_generator: Iterable[Dataset]):
 
 
 def tift_dataset_generator_sync(folder_paths: Iterable[str]):
+    folder_paths = sorted(folder_paths)
     for path in folder_paths:
         yield Dataset.load_tift(path)
 
@@ -31,6 +32,8 @@ def tift_dataset_generator_async(folder_paths: Iterable[str]):
     that the next dataset is already loaded when the current one is
     finished being processed.
     """
+    folder_paths = sorted(folder_paths)
+
     with ThreadPoolExecutor() as executor:
         folder_paths = iter(folder_paths)
 
