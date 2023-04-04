@@ -18,6 +18,7 @@ def create_combined_mask(mask_path, dataset_generator: Iterable[Dataset]):
     mask = first.extract_mask()
     for dataset in dataset_generator:
         mask |= dataset.extract_mask()
+        del dataset  # free memory
     mask.save(mask_path)
 
 
