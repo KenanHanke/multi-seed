@@ -2,6 +2,7 @@ import logging
 from dataset import Dataset
 from concurrent.futures import ThreadPoolExecutor
 from typing import Iterable
+import gc
 
 
 def create_combined_mask(mask_path, dataset_generator: Iterable[Dataset]):
@@ -24,6 +25,7 @@ def tift_dataset_generator_sync(folder_paths: Iterable[str]):
     folder_paths = sorted(folder_paths)
     for path in folder_paths:
         yield Dataset.load_tift(path)
+        gc.collect()  # free memory
 
 
 def tift_dataset_generator_async(folder_paths: Iterable[str]):
@@ -53,6 +55,9 @@ def tift_dataset_generator_async(folder_paths: Iterable[str]):
             # yield and continue with next dataset
             yield current_dataset
             current_dataset = next_dataset
+
+            # free memory
+            gc.collect()
 
         # yield last dataset
         yield current_dataset.result()
