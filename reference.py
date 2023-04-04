@@ -58,6 +58,7 @@ class ReferenceBuilder:
         logging.info('Building reference from %d points', len(self))
 
         reference = Reference(len(self), dataset.time_series_length)
+        reference.source = self
         for i, point in enumerate(self.points):
             reference.data[i] = dataset.data[tuple(point)]
         return reference
@@ -71,3 +72,4 @@ class Reference:
 
     def __init__(self, n: int, time_series_length: int):
         self.data = np.zeros((n, time_series_length), dtype=np.float64)
+        self.source: ReferenceBuilder = None
