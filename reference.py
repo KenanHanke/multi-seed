@@ -120,7 +120,7 @@ class Reference:
 
     def __init__(self, n: int, time_series_length: int):
         """
-        Initialize a Reference instance.
+        Initialize an empty Reference instance.
 
         Args:
             n (int): The number of reference time series.
