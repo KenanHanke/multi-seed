@@ -5,6 +5,19 @@ from image import Mask
 
 
 class ReferenceBuilder:
+    """
+    A class to create a set of reference time series by sampling points from a dataset.
+
+    This class samples points from a dataset based on the provided dimensions and an optional mask. 
+    The sampled points can be used to build a Reference object, which contains a set of reference 
+    time series that can be used to compute correlation coefficients with other time series.
+
+    Attributes:
+        dimensions (tuple[int]): The dimensions of the data to sample points from.
+        mask (Mask, optional): A mask object to filter points based on certain criteria.
+        points (np.array): An array containing the sampled points.
+    """
+
     def __init__(self, *, dimensions: tuple[int] = None, mask: Mask = None):
         """
         Initialize a ReferenceBuilder instance.
