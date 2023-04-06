@@ -7,7 +7,13 @@ from image import Mask
 class ReferenceBuilder:
     def __init__(self, *, dimensions: tuple[int] = None, mask: Mask = None):
         """
-        Either dimensions or mask must be specified.
+        Initialize a ReferenceBuilder instance.
+
+        Args:
+            dimensions (tuple[int], optional): The dimensions of the data to sample points from.
+            mask (Mask, optional): A mask object to filter points based on certain criteria.
+
+        Note: Either dimensions or mask must be specified.
         """
         self.mask = mask
         if mask is None:
@@ -18,7 +24,11 @@ class ReferenceBuilder:
 
     def sample(self, n: int, rng=None):
         """
-        Sample n points.
+        Sample n points from the data space.
+
+        Args:
+            n (int): The number of points to sample.
+            rng (np.random.Generator, optional): A random number generator to use for sampling points.
         """
         logging.info('Sampling %d points', n)
 
@@ -39,10 +49,25 @@ class ReferenceBuilder:
                     i += 1
 
     def save(self, path):
+        """
+        Save the sampled points to a compressed file.
+
+        Args:
+            path (str): The path to save the compressed file.
+        """
         np.savez_compressed(path, points=self.points)
 
-    @ classmethod
+    @classmethod
     def load(cls, path):
+        """
+        Load a ReferenceBuilder instance from a saved file.
+
+        Args:
+            path (str): The path to the saved file.
+
+        Returns:
+            ReferenceBuilder: An instance of ReferenceBuilder with the loaded data.
+        """
         data = np.load(path)
         reference_builder = cls()
         reference_builder.points = data['points']
@@ -53,7 +78,13 @@ class ReferenceBuilder:
 
     def build(self, dataset):
         """
-        Build a reference from the sampled points.
+        Build a Reference object from the sampled points.
+
+        Args:
+            dataset: The dataset to extract the reference time series from.
+
+        Returns:
+            Reference: A Reference object containing the reference time series.
         """
         logging.info('Building reference from %d points', len(self))
 
@@ -68,8 +99,19 @@ class Reference:
     """
     Contains a set of reference time series to which correlation
     coefficients can be computed.
+
+    Attributes:
+        data (np.array): A 2D array containing the reference time series.
+        source (ReferenceBuilder): The ReferenceBuilder instance used to generate the reference time series.
     """
 
     def __init__(self, n: int, time_series_length: int):
+        """
+        Initialize a Reference instance.
+
+        Args:
+            n (int): The number of reference time series.
+            time_series_length (int): The length of each time series.
+        """
         self.data = np.zeros((n, time_series_length), dtype=np.float64)
         self.source: ReferenceBuilder = None
