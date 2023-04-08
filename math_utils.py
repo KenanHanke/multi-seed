@@ -11,13 +11,13 @@ def abs_corr_coef(time_series_1, time_series_2):
     equally indicative of a connection as a strong positive correlation.
 
     Does the calculation manually instead of with np.corrcoef in order
-    to improve performance, as this function is called many times. The
+    to improve performance, as this function is called many times. (The
     numpy function builds a matrix, which is a small but substantial
-    overhead.
+    overhead.)
 
     Args:
-        time_series_1 (np.array): The first time series.
-        time_series_2 (np.array): The second time series. Must have the same length as time_series_1.
+        time_series_1 (np.array): The first time series
+        time_series_2 (np.array): The second time series (must have same length as first)
 
     Returns:
         float: The absolute value of the correlation coefficient.
@@ -33,9 +33,57 @@ def abs_corr_coef(time_series_1, time_series_2):
     sum_prod = np.sum(time_series_1 * time_series_2)
 
     numerator = n * sum_prod - sum_1 * sum_2
-    denominator = ((n * sum_sq_1 - sum_1 ** 2) * (n * sum_sq_2 - sum_2 ** 2)) ** 0.5
+    denominator = ((n * sum_sq_1 - sum_1 ** 2) *
+                   (n * sum_sq_2 - sum_2 ** 2)) ** 0.5
 
     if denominator == 0:
         return 0
     else:
         return np.abs(numerator / denominator)
+
+
+class UntranslatedPCA:
+    """
+    A PCA implementation that does not translate the data before
+    performing the transformation. Partially implements the interface
+    of sklearn.decomposition.PCA.
+    """
+
+    # Lines that would perform a translation are included for reference
+    # and are commented out. It has been verified that the results of
+    # running this class with the translation lines functioning are
+    # identical to the results of running sklearn's PCA class with
+    # the argument svd_solver='full', except for signs of the principal
+    # component basis vectors, which are arbitrary.
+
+    def __init__(self, n_components):
+        self.n_components = n_components
+        self.components = None
+
+        # FOLLOWING LINE IS INCLUDED ONLY FOR REFERENCE
+        # self.mean = None
+
+    def fit(self, X):
+        # FOLLOWING LINES ARE INCLUDED ONLY FOR REFERENCE
+        # self.mean = np.mean(X, axis=0)
+        # X = X - self.mean
+
+        # compute the covariance matrix
+        cov_matrix = np.cov(X, rowvar=False)
+
+        # compute the eigenvectors and eigenvalues using Hermitian
+        # eigendecomposition because covariance matrix is symmetric
+        eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
+
+        # sort eigenvectors based on eigenvalues
+        sorted_indices = np.argsort(eigenvalues)[::-1]
+        eigenvectors = eigenvectors[:, sorted_indices]
+
+        # select the top eigenvectors (amount determined by n_components)
+        self.components = eigenvectors[:, :self.n_components]
+
+    def transform(self, X):
+        # FOLLOWING LINE IS INCLUDED ONLY FOR REFERENCE
+        # X = X - self.mean
+
+        return np.dot(X, self.components)
