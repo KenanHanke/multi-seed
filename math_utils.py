@@ -57,6 +57,12 @@ class UntranslatedPCA:
     # component basis vectors, which are arbitrary.
 
     def __init__(self, n_components):
+        """
+        Initialize the UntranslatedPCA instance with the specified number of principal components.
+
+        Args:
+            n_components (int): Number of principal components to be retained.
+        """
         self.n_components = n_components
         self.components = None
 
@@ -64,6 +70,12 @@ class UntranslatedPCA:
         # self.mean = None
 
     def fit(self, X):
+        """
+        Compute the principal components of the input data without centering it.
+
+        Args:
+            X (numpy array-like): Input data, shape (n_samples, n_features).
+        """
         # FOLLOWING LINES ARE INCLUDED ONLY FOR REFERENCE
         # self.mean = np.mean(X, axis=0)
         # X = X - self.mean
@@ -83,6 +95,15 @@ class UntranslatedPCA:
         self.components = eigenvectors[:, :self.n_components]
 
     def transform(self, X):
+        """
+        Apply the UntranslatedPCA transformation to the input data without centering it.
+
+        Args:
+            X (numpy array-like): Input data, shape (n_samples, n_features).
+
+        Returns:
+            numpy array-like: Transformed data, shape (n_samples, n_components).
+        """
         # FOLLOWING LINE IS INCLUDED ONLY FOR REFERENCE
         # X = X - self.mean
 
