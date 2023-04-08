@@ -1,6 +1,6 @@
 import shutil
 import glob
-from common import ROOT
+from constants import ROOT
 import os
 
 
@@ -23,5 +23,5 @@ def generate_header(path):
         generate_header.index += 1
         generate_header.index %= len(generate_header.templates)
 
-    # copy template to path
+    # copy template to given path
     shutil.copyfile(generate_header.templates[generate_header.index], path)
