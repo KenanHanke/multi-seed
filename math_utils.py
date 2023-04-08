@@ -46,13 +46,16 @@ class UntranslatedPCA:
     """
     A PCA implementation that does not translate the data before
     performing the transformation. Partially implements the interface
-    of sklearn.decomposition.PCA.
+    of sklearn.decomposition.PCA. When run on pre-centered data, the
+    results are identical to sklearn's PCA class when it has been
+    initialized with the argument svd_solver='full', except for signs
+    of the principal component basis vectors (which are arbitrary).
     """
 
     # Lines that would perform a translation are included for reference
-    # and are commented out. It has been verified that the results of
-    # running this class with the translation lines functioning are
-    # identical to the results of running sklearn's PCA class with
+    # but are commented out. It has been verified that the results of
+    # running this class with the translation lines not commented out
+    # are identical to the results of running sklearn's PCA class with
     # the argument svd_solver='full', except for signs of the principal
     # component basis vectors, which are arbitrary.
 
