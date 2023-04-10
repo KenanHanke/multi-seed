@@ -1,6 +1,8 @@
 from rbloom import Bloom
 import numpy as np
 
+TIFT_DTYPE = np.uint16
+
 
 # This is a generic MPRAGE header file that has been cleaned of all
 # uniquely identifying information. Each byte is equivalent to the

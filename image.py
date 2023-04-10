@@ -1,4 +1,4 @@
-from constants import TIFT_DTYPE
+from tift import TIFT_DTYPE
 import numpy as np
 import gzip
 import logging

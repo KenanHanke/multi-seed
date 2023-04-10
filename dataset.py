@@ -3,8 +3,7 @@ import os
 import numpy as np
 from image import Image, Mask
 import logging
-
-from constants import TIFT_DTYPE
+from tift import TIFT_DTYPE
 
 
 class Dataset:
