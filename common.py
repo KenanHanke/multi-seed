@@ -22,14 +22,14 @@ def sample_points(n_points: int, *, mask: Optional[Mask], rng=None):
     Returns:
         np.array: An array containing the 3D coordinates of the sampled points. The shape of the array is (n_points, 3).
     """
-    logging.info('Sampling %d unique points', n_points)
+    logging.info("Sampling %d unique points", n_points)
 
     points = np.empty((n_points, 3), dtype=np.int16)
 
     if rng is None:
         rng = np.random.default_rng()
 
-    points_so_far = Bloom(n_points*1000, 0.01)
+    points_so_far = Bloom(n_points * 1000, 0.01)
 
     i = 0
     while i < n_points:
@@ -47,12 +47,12 @@ def create_combined_mask(mask_path, datasets: Iterable[Dataset]):
     """
     Accumulate a mask from the given datasets.
     """
-    logging.info('Creating combined mask from datasets')
+    logging.info("Creating combined mask from datasets")
     datasets = iter(datasets)
     try:
         first = next(datasets)
     except StopIteration:
-        raise ValueError('No datasets given')
+        raise ValueError("No datasets given")
     mask = first.extract_mask()
     for dataset in datasets:
         mask |= dataset.extract_mask()

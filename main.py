@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import logging
 import numpy as np
 from glob import glob
@@ -17,8 +18,12 @@ SIZE_OF_COMPARISON_POINT_SAMPLE = 2000
 
 def main():
     logging.basicConfig(
-        format="[%(levelname)s %(asctime)s] %(message)s",
-        level=logging.DEBUG)
+        format="[%(levelname)s %(asctime)s] %(message)s", level=logging.DEBUG
+    )
+
+    # suppress numba's excessive debug messages
+    numba_logger = logging.getLogger("numba")
+    numba_logger.setLevel(logging.WARNING)
 
     # ensure reproducibility of random numbers
     rng = np.random.default_rng(seed=42)
@@ -29,9 +34,15 @@ def main():
     # mask = dataset.extract_mask()
     # mask.save("mask.npz")
     mask = Mask.load("mask_combined.npz")
-    reference_builder = ReferenceBuilder(mask=mask)
+
+    reference_builder = ReferenceBuilder(radius=10, mask=mask)
     reference_builder.sample(N, rng)
     reference = reference_builder.build(dataset)
+
+    # --------- POSSIBLE INTERFACE --------- #
+    # projection = PCA()
+    # projection.calibrate(dataset, reference)
+    #
 
     ##########################################
     ### NOT YET IMPLEMENTED IN NEW VERSION ###
@@ -45,5 +56,5 @@ def main():
     # save_results(results, PATH, np.uint8)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
