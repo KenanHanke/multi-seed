@@ -9,7 +9,6 @@ from image import Image, Mask
 from reference import ReferenceBuilder, Reference
 from common import *
 
-
 PATH = "/home/khanke/data/HypoPark/hypoPark/00CONVERTED/CON/REDACTED/fmri301/MNINorm/new_PreProcAll"
 NUM_OF_PRINCIPAL_COMPONENTS = 3
 N = 200
@@ -17,9 +16,8 @@ SIZE_OF_COMPARISON_POINT_SAMPLE = 2000
 
 
 def main():
-    logging.basicConfig(
-        format="[%(levelname)s %(asctime)s] %(message)s", level=logging.DEBUG
-    )
+    logging.basicConfig(format="[%(levelname)s %(asctime)s] %(message)s",
+                        level=logging.DEBUG)
 
     # suppress numba's excessive debug messages
     numba_logger = logging.getLogger("numba")

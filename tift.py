@@ -1,7 +1,35 @@
 from rbloom import Bloom
 import numpy as np
+from image import Image
+import gzip
+import logging
 
 TIFT_DTYPE = np.uint16
+
+
+def load_image(path):
+    logging.debug("Loading TIFT image from %s", path)
+
+    dimensions = (256, ) * 3
+    image = Image(dimensions, dtype=TIFT_DTYPE)
+    with gzip.open(path, "rb") as f:
+        raw_data = np.frombuffer(f.read(), dtype=TIFT_DTYPE)
+        image.data[:] = raw_data.reshape(dimensions)
+    return image
+
+
+def save_image(image, path):
+    if not path.endswith(".img.z"):
+        raise ValueError("TIFT image path must end with .img.z")
+
+    hdr_path = path[:-6] + ".hdr"
+
+    logging.debug("Saving TIFT image to %s", path)
+
+    create_header(hdr_path)
+
+    with gzip.open(path, "wb") as f:
+        f.write(image.data.tobytes())
 
 
 # This is a generic MPRAGE header file that has been cleaned of all
@@ -18,27 +46,20 @@ TIFT_DTYPE = np.uint16
 # will, however, remove all reverse engineered format information if
 # requested to do so by a proprietor of TIFT.
 _GENERIC_MPRAGE_HEADER = (
-    b"\\\x01\x00\x00dsr    \x00\x00\x00"
-    + b"/redacted/origin"
-    + b"l(\x00\x00\x00\x00\x00\x00r0"
-    + b"\x03\x00\x00\x01\x00\x01\x00\x01\x01\x00\x01\x00\x01\x00\x01\x00"
-    + b"mm\x00\x00\x00\x00\x00\x00\x00\x00\x9c\xff\x00\x00\x04\x00\x10"
-    + b"\x00\x00\x00\x00\x00\x80\xbf\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?"
-    + b"\x00" * 56
-    + b"SPM compatible    \x00\x00\xee\xf076\x9e\x7f"
-    + b"\x00" * 10
-    + b"\x80\xf3\xcd\xfa\xfc\x7f\x00\x00\xf0\xf3\xcd\xbe\xfc\x7f"
-    + b"\x00\x00\x00\xd7q\xcb\x8cHl("
-    + b"\x00" * 16
-    + b"\xf0\xf3\xcd\xbenone    \x00\x7f"
-    + b"\x00" * 13
-    + b"\x04\x01\x80\x00\x80\x00\x80"
-    + b"\x00" * 14
-    + b"P\x00\xcd\xbe\xfc\x7f\x00\x00K\x00\x00\x00\x00\x00\x00\x00"
-    + b",\xf9\xcd\xbe\xfc\x00\x00\x00\xb1i\x986\x9e\x7f\x00\x00"
-    + b"\x01\x80\xad\xfb\x00\x00\x00\x00,\x00\xcd\xbe"
-    + b"\x00" * 32
-)
+    b"\\\x01\x00\x00dsr    \x00\x00\x00" + b"/redacted/origin" +
+    b"l(\x00\x00\x00\x00\x00\x00r0" +
+    b"\x03\x00\x00\x01\x00\x01\x00\x01\x01\x00\x01\x00\x01\x00\x01\x00" +
+    b"mm\x00\x00\x00\x00\x00\x00\x00\x00\x9c\xff\x00\x00\x04\x00\x10" +
+    b"\x00\x00\x00\x00\x00\x80\xbf\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?" +
+    b"\x00" * 56 + b"SPM compatible    \x00\x00\xee\xf076\x9e\x7f" +
+    b"\x00" * 10 +
+    b"\x80\xf3\xcd\xfa\xfc\x7f\x00\x00\xf0\xf3\xcd\xbe\xfc\x7f" +
+    b"\x00\x00\x00\xd7q\xcb\x8cHl(" + b"\x00" * 16 +
+    b"\xf0\xf3\xcd\xbenone    \x00\x7f" + b"\x00" * 13 +
+    b"\x04\x01\x80\x00\x80\x00\x80" + b"\x00" * 14 +
+    b"P\x00\xcd\xbe\xfc\x7f\x00\x00K\x00\x00\x00\x00\x00\x00\x00" +
+    b",\xf9\xcd\xbe\xfc\x00\x00\x00\xb1i\x986\x9e\x7f\x00\x00" +
+    b"\x01\x80\xad\xfb\x00\x00\x00\x00,\x00\xcd\xbe" + b"\x00" * 32)
 
 
 def create_header(path):
@@ -49,7 +70,7 @@ def create_header(path):
     """
     # set up static variable
     if not hasattr(create_header, "filter"):
-        create_header.filter = Bloom(1000000, 0.01)  # uses around 1 MB of memory
+        create_header.filter = Bloom(100_000, 0.01)  # uses around 100 KB
 
     # generate a unique tag
     while True:

@@ -79,7 +79,8 @@ def tift_dataset_generator_async(folder_paths: Iterable[str]):
 
         # load first dataset
         try:
-            current_dataset = executor.submit(Dataset.load_tift, next(folder_paths))
+            current_dataset = executor.submit(Dataset.load_tift,
+                                              next(folder_paths))
         except StopIteration:  # no datasets to load
             return
 

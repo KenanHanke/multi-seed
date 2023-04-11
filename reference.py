@@ -27,9 +27,11 @@ class ReferenceBuilder:
         radius (float): The radius of the seed regions to sample. Must be greater than or equal to 0.
     """
 
-    def __init__(
-        self, *, radius: float, dimensions: tuple[int] = None, mask: Mask = None
-    ):
+    def __init__(self,
+                 *,
+                 radius: float,
+                 dimensions: tuple[int] = None,
+                 mask: Mask = None):
         """
         Initialize a ReferenceBuilder instance.
 
@@ -70,9 +72,10 @@ class ReferenceBuilder:
         Args:
             path (str): The path to save the compressed file.
         """
-        np.savez_compressed(
-            path, points=self.points, radius=self.radius, dimensions=self.dimensions
-        )
+        np.savez_compressed(path,
+                            points=self.points,
+                            radius=self.radius,
+                            dimensions=self.dimensions)
 
     @classmethod
     def load(cls, path):
@@ -111,7 +114,8 @@ class ReferenceBuilder:
 
         reference = Reference(len(self), dataset.time_series_length)
         reference.source = self
-        _build_reference(reference.data, dataset.data, self.points, self.radius)
+        _build_reference(reference.data, dataset.data, self.points,
+                         self.radius)
         return reference
 
 
@@ -130,7 +134,8 @@ def _build_reference(reference_data, dataset_data, points, radius):
         if radius <= 0:
             reference_data[i] = dataset_data[point]
         else:
-            reference_data[i] = _build_reference_seed(dataset_data, point, radius)
+            reference_data[i] = _build_reference_seed(dataset_data, point,
+                                                      radius)
 
 
 @njit
@@ -155,7 +160,7 @@ def _build_reference_seed(dataset_data, point, radius):
     for i in range(min_x, max_x + 1):
         for j in range(min_y, max_y + 1):
             for k in range(min_z, max_z + 1):
-                dist = np.sqrt((i - x) ** 2 + (j - y) ** 2 + (k - z) ** 2)
+                dist = np.sqrt((i - x)**2 + (j - y)**2 + (k - z)**2)
 
                 # only use voxels within the sphere
                 if dist > radius:

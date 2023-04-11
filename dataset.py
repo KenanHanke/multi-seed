@@ -7,20 +7,26 @@ from tift import TIFT_DTYPE
 
 
 class Dataset:
-    def __init__(
-        self,
-        dimensions: tuple[int] = None,
-        time_series_length: int = None,
-        *,
-        dtype=None,
-        data=None
-    ):
+
+    def __init__(self,
+                 dimensions: tuple[int] = None,
+                 time_series_length: int = None,
+                 *,
+                 dtype=None,
+                 data=None):
+
         if data is not None:
             self.data = data
+
         else:
+            if dimensions is None or dtype is None:
+                raise ValueError(
+                    "Either data or the other parameters must be given")
+
             # time series data is contiguous in memory (last axis)
             # this is important to prevent cache misses
-            self.data = np.zeros((*dimensions, time_series_length), dtype=dtype)
+            self.data = np.zeros((*dimensions, time_series_length),
+                                 dtype=dtype)
 
     @classmethod
     def load(cls, file_path):
@@ -40,14 +46,13 @@ class Dataset:
         pattern = r"f\d{10}\.img\.z"
         listing = os.listdir(folder_path)
         img_paths = [
-            os.path.join(folder_path, entry)
-            for entry in listing
+            os.path.join(folder_path, entry) for entry in listing
             if re.fullmatch(pattern, entry)
         ]
         img_paths.sort()
 
         time_series_length = len(img_paths)
-        dimensions = (256,) * 3
+        dimensions = (256, ) * 3
 
         # initialize dataset
         dataset = cls(dimensions, time_series_length, dtype=TIFT_DTYPE)
@@ -58,7 +63,9 @@ class Dataset:
 
         return dataset
 
-    def save_tift(self, folder_path, filename_format="f{one_based_index:010}.img.z"):
+    def save_tift(self,
+                  folder_path,
+                  filename_format="f{one_based_index:010}.img.z"):
         logging.info("Saving dataset to folder %s", folder_path)
 
         # create folder if it does not exist
@@ -69,8 +76,7 @@ class Dataset:
         for i in range(self.time_series_length):
             img = Image(data=self.data[..., i])
             img_path = os.path.join(
-                folder_path, filename_format.format(one_based_index=i + 1)
-            )
+                folder_path, filename_format.format(one_based_index=i + 1))
             img.save_tift(img_path)
 
     def extract_mask(self):
@@ -91,8 +97,8 @@ class Dataset:
         return self.data.dtype
 
     def copy(self):
-        new_dataset = self.__class__(
-            self.dimensions, self.time_series_length, dtype=self.dtype
-        )
+        new_dataset = self.__class__(self.dimensions,
+                                     self.time_series_length,
+                                     dtype=self.dtype)
         new_dataset.data[:] = self.data
         return new_dataset
