@@ -39,19 +39,3 @@ def sample_points(n_points: int, *, mask: Optional[Mask], rng=None):
                 i += 1
 
     return points
-
-
-def create_combined_mask(mask_path, datasets: Iterable[Dataset]):
-    """
-    Accumulate a mask from the given datasets.
-    """
-    logging.info("Creating combined mask from datasets")
-    datasets = iter(datasets)
-    try:
-        first = next(datasets)
-    except StopIteration:
-        raise ValueError("No datasets given")
-    mask = first.extract_mask()
-    for dataset in datasets:
-        mask |= dataset.extract_mask()
-    mask.save(mask_path)

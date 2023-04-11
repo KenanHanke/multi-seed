@@ -96,3 +96,18 @@ class DatasetLoader(Iterable[Dataset]):
 
     def __len__(self):
         return len(self.paths)
+
+    def extract_mask(self):
+        """
+        Accumulate a mask from the given datasets.
+        """
+        logging.info("Creating combined mask from datasets")
+        datasets = iter(self)
+        try:
+            first = next(datasets)
+        except StopIteration:
+            raise ValueError("No datasets given")
+        mask = first.extract_mask()
+        for dataset in datasets:
+            mask |= dataset.extract_mask()
+        return mask
