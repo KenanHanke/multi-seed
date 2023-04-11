@@ -114,7 +114,7 @@ class ReferenceBuilder:
 ############ START OF COMPILED REFERENCEBUILDER HELPER FUNCTIONS ############
 @njit(parallel=True)
 def _build_reference(reference_data, dataset_data, points, radius):
-    for i in prange(len(points)):
+    for i in prange(points.shape[0]):
         point = points[i]
         point = (int(point[0]),
                  int(point[1]),
@@ -127,10 +127,9 @@ def _build_reference(reference_data, dataset_data, points, radius):
 
 @njit
 def _build_reference_seed(dataset_data, point, radius):
-    """
-    Returns a time series where each value is the weighted mean of all voxels of the
-    corresponding time point within a sphere of radius r centered at the given point.
-    """
+    # Returns a time series where each value is the weighted mean of all voxels of the
+    # corresponding time point within a sphere of radius r centered at the given point.
+
     x, y, z = point  # not necessarily MNI x, y, z coordinates
     ceil_radius = int(np.ceil(radius))
 
@@ -149,8 +148,12 @@ def _build_reference_seed(dataset_data, point, radius):
         for j in range(min_y, max_y + 1):
             for k in range(min_z, max_z + 1):
                 dist = np.sqrt((i - x)**2 + (j - y)**2 + (k - z)**2)
+
+                # only use voxels within the sphere
+                if dist > radius:
+                    continue
+
                 weight = 1 - dist**2 / radius**2
-                weight *= weight > 0  # only use voxels within the sphere
 
                 total_weight += weight
                 time_series += weight * dataset_data[i, j, k]
