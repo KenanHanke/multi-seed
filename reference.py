@@ -27,7 +27,9 @@ class ReferenceBuilder:
         radius (float): The radius of the seed regions to sample. Must be greater than or equal to 0.
     """
 
-    def __init__(self, *, radius: float, dimensions: tuple[int] = None, mask: Mask = None):
+    def __init__(
+        self, *, radius: float, dimensions: tuple[int] = None, mask: Mask = None
+    ):
         """
         Initialize a ReferenceBuilder instance.
 
@@ -56,7 +58,8 @@ class ReferenceBuilder:
         """
         if self._loaded:
             raise RuntimeError(
-                'Cannot sample new points from a loaded ReferenceBuilder instance')
+                "Cannot sample new points from a loaded ReferenceBuilder instance"
+            )
 
         self.points = sample_points(n_points, mask=self.mask, rng=rng)
 
@@ -67,8 +70,9 @@ class ReferenceBuilder:
         Args:
             path (str): The path to save the compressed file.
         """
-        np.savez_compressed(path, points=self.points,
-                            radius=self.radius, dimensions=self.dimensions)
+        np.savez_compressed(
+            path, points=self.points, radius=self.radius, dimensions=self.dimensions
+        )
 
     @classmethod
     def load(cls, path):
@@ -82,9 +86,9 @@ class ReferenceBuilder:
             ReferenceBuilder: An instance of ReferenceBuilder with the loaded data.
         """
         data = np.load(path)
-        points = data['points']
-        radius = data['radius']
-        dimensions = tuple(data['dimensions'])
+        points = data["points"]
+        radius = data["radius"]
+        dimensions = tuple(data["dimensions"])
         reference_builder = cls(radius=radius, dimensions=dimensions)
         reference_builder.points = points
         reference_builder._loaded = True
@@ -103,7 +107,7 @@ class ReferenceBuilder:
         Returns:
             Reference: A Reference object containing the reference time series.
         """
-        logging.info('Building reference from %d points', len(self))
+        logging.info("Building reference from %d points", len(self))
 
         reference = Reference(len(self), dataset.time_series_length)
         reference.source = self
@@ -112,13 +116,17 @@ class ReferenceBuilder:
 
 
 ############ START OF COMPILED REFERENCEBUILDER HELPER FUNCTIONS ############
+
+
 @njit(parallel=True)
 def _build_reference(reference_data, dataset_data, points, radius):
     for i in prange(points.shape[0]):
         point = points[i]
-        point = (int(point[0]),
-                 int(point[1]),
-                 int(point[2]))  # necessary syntax for numba
+        point = (
+            int(point[0]),
+            int(point[1]),
+            int(point[2]),
+        )  # necessary syntax for numba
         if radius <= 0:
             reference_data[i] = dataset_data[point]
         else:
@@ -147,7 +155,7 @@ def _build_reference_seed(dataset_data, point, radius):
     for i in range(min_x, max_x + 1):
         for j in range(min_y, max_y + 1):
             for k in range(min_z, max_z + 1):
-                dist = np.sqrt((i - x)**2 + (j - y)**2 + (k - z)**2)
+                dist = np.sqrt((i - x) ** 2 + (j - y) ** 2 + (k - z) ** 2)
 
                 # only use voxels within the sphere
                 if dist > radius:
@@ -159,6 +167,8 @@ def _build_reference_seed(dataset_data, point, radius):
                 time_series += weight * dataset_data[i, j, k]
 
     return time_series / total_weight
+
+
 ############ END OF COMPILED REFERENCEBUILDER HELPER FUNCTIONS ############
 
 
