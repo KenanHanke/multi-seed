@@ -33,8 +33,7 @@ def abs_corr_coef(time_series_1, time_series_2):
     sum_prod = np.sum(time_series_1 * time_series_2)
 
     numerator = n * sum_prod - sum_1 * sum_2
-    denominator = ((n * sum_sq_1 - sum_1 ** 2) *
-                   (n * sum_sq_2 - sum_2 ** 2)) ** 0.5
+    denominator = ((n * sum_sq_1 - sum_1**2) * (n * sum_sq_2 - sum_2**2)) ** 0.5
 
     if denominator == 0:
         return 0
@@ -95,7 +94,7 @@ class UntranslatedPCA:
         eigenvectors = eigenvectors[:, sorted_indices]
 
         # select the top eigenvectors (amount determined by n_components)
-        self.components = eigenvectors[:, :self.n_components]
+        self.components = eigenvectors[:, : self.n_components]
 
     def transform(self, X):
         """
