@@ -11,16 +11,44 @@ TIFT_DTYPE = np.uint16
 
 
 def load_image(path):
+    """
+    Load TIFT image from the specified file path.
+
+    Args:
+        path (str): Path to the TIFT image file.
+
+    Returns:
+        Image: Loaded Image object.
+    """
     logging.debug("Loading TIFT image from %s", path)
 
+    if path.endswith(".z"):
+        with gzip.open(path, "rb") as f:
+            raw_data = f.read()
+    else:
+        with open(path, "rb") as f:
+            raw_data = f.read()
+
+    raw_data = np.frombuffer(raw_data, dtype=TIFT_DTYPE)
+
     dimensions = (256, ) * 3
-    with gzip.open(path, "rb") as f:
-        raw_data = np.frombuffer(f.read(), dtype=TIFT_DTYPE)
-        image = Image(data=raw_data.reshape(dimensions))
+    image = Image(data=raw_data.reshape(dimensions))
     return image
 
 
 def save_image(image: Image, path):
+    """
+    Save an Image object as a TIFT image at the specified file path.
+    Also creates a header file with the same name as the image file,
+    but with a .hdr extension.
+
+    Args:
+        image (Image): Image object to save.
+        path (str): Path to save the TIFT image file. Must end with .img.z.
+
+    Raises:
+        ValueError: If the TIFT image path does not end with .img.z.
+    """
     if not path.endswith(".img.z"):
         raise ValueError("TIFT image path must end with .img.z")
 
@@ -37,7 +65,13 @@ def save_image(image: Image, path):
 
 def load_dataset(folder_path):
     """
-    Load fMRI dataset from folder.
+    Load fMRI dataset from the specified folder.
+
+    Args:
+        folder_path (str): Path to the folder containing the dataset.
+
+    Returns:
+        Dataset: Loaded Dataset object.
     """
     logging.info("Loading dataset from folder %s", folder_path)
 
@@ -66,6 +100,15 @@ def load_dataset(folder_path):
 def save_dataset(dataset: Dataset,
                  folder_path,
                  filename_format="image{one_based_index:010}.img.z"):
+    """
+    Save a Dataset object to the specified folder.
+
+    Args:
+        dataset (Dataset): Dataset object to save.
+        folder_path (str): Path to save the dataset.
+        filename_format (str, optional): Filename format for images in the dataset.
+                                         Defaults to "image{one_based_index:010}.img.z".
+    """
     logging.info("Saving dataset to folder %s", folder_path)
 
     # create folder if it does not exist
@@ -111,9 +154,13 @@ _GENERIC_MPRAGE_HEADER = (
 
 def create_header(path):
     """
-    Creates an MPRAGE-equivalent header file at the given path, which
-    allows any image with the same filename (excepting its extension)
+    Create an MPRAGE-equivalent header file at the given path.
+
+    This allows any image with the same filename (excepting its extension)
     to be viewed from inside TIFT as a grayscale 3D image.
+
+    Args:
+        path (str): Path to create the header file.
     """
     # set up static variable
     if not hasattr(create_header, "filter"):
