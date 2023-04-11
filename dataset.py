@@ -1,9 +1,7 @@
-import re
 import os
 import numpy as np
 from image import Image, Mask
 import logging
-from tift import TIFT_DTYPE
 
 
 class Dataset:
@@ -38,47 +36,6 @@ class Dataset:
         logging.info("Saving dataset to %s", file_path)
         np.savez_compressed(file_path, data=self.data)
 
-    @classmethod
-    def load_tift(cls, folder_path):
-        logging.info("Loading dataset from folder %s", folder_path)
-
-        # retrieve all image paths in folder
-        pattern = r"f\d{10}\.img\.z"
-        listing = os.listdir(folder_path)
-        img_paths = [
-            os.path.join(folder_path, entry) for entry in listing
-            if re.fullmatch(pattern, entry)
-        ]
-        img_paths.sort()
-
-        time_series_length = len(img_paths)
-        dimensions = (256, ) * 3
-
-        # initialize dataset
-        dataset = cls(dimensions, time_series_length, dtype=TIFT_DTYPE)
-
-        # load images
-        for i, img_path in enumerate(img_paths):
-            dataset.data[..., i] = Image.load_tift(img_path).data
-
-        return dataset
-
-    def save_tift(self,
-                  folder_path,
-                  filename_format="f{one_based_index:010}.img.z"):
-        logging.info("Saving dataset to folder %s", folder_path)
-
-        # create folder if it does not exist
-        if not os.path.exists(folder_path):
-            os.makedirs(folder_path)
-
-        # save images
-        for i in range(self.time_series_length):
-            img = Image(data=self.data[..., i])
-            img_path = os.path.join(
-                folder_path, filename_format.format(one_based_index=i + 1))
-            img.save_tift(img_path)
-
     def extract_mask(self):
         mask = Mask(self.dimensions)
         mask.data[:] = np.any(self.data, axis=-1)
@@ -95,6 +52,24 @@ class Dataset:
     @property
     def dtype(self):
         return self.data.dtype
+
+    def __len__(self):
+        return self.time_series_length
+
+    def __getitem__(self, key: int):
+        if not isinstance(key, int):
+            raise TypeError("Only integer indexing is supported")
+
+        return Image(data=self.data[..., key])
+
+    def __setitem__(self, key: int, value: Image):
+        if not isinstance(key, int):
+            raise TypeError("Only integer indexing is supported")
+
+        if not self.data.dtype == value.dtype:
+            raise ValueError("Data type mismatch")
+
+        self.data[..., key] = value.data
 
     def copy(self):
         new_dataset = self.__class__(self.dimensions,

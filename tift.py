@@ -1,8 +1,11 @@
 from rbloom import Bloom
 import numpy as np
 from image import Image
+from dataset import Dataset
 import gzip
 import logging
+import os
+import re
 
 TIFT_DTYPE = np.uint16
 
@@ -11,25 +14,69 @@ def load_image(path):
     logging.debug("Loading TIFT image from %s", path)
 
     dimensions = (256, ) * 3
-    image = Image(dimensions, dtype=TIFT_DTYPE)
     with gzip.open(path, "rb") as f:
         raw_data = np.frombuffer(f.read(), dtype=TIFT_DTYPE)
-        image.data[:] = raw_data.reshape(dimensions)
+        image = Image(data=raw_data.reshape(dimensions))
     return image
 
 
-def save_image(image, path):
+def save_image(image: Image, path):
     if not path.endswith(".img.z"):
         raise ValueError("TIFT image path must end with .img.z")
 
-    hdr_path = path[:-6] + ".hdr"
-
-    logging.debug("Saving TIFT image to %s", path)
-
+    # save header
+    hdr_path = path[:-6] + ".hdr"  # remove .img.z and add .hdr
+    logging.debug("Generating TIFT header at %s", hdr_path)
     create_header(hdr_path)
 
+    # save image
+    logging.debug("Saving TIFT image to %s", path)
     with gzip.open(path, "wb") as f:
         f.write(image.data.tobytes())
+
+
+def load_dataset(folder_path):
+    """
+    Load fMRI dataset from folder.
+    """
+    logging.info("Loading dataset from folder %s", folder_path)
+
+    # retrieve all image paths in folder
+    pattern = r"f\d{10}\.img\.z"
+    listing = os.listdir(folder_path)
+    img_paths = [
+        os.path.join(folder_path, entry) for entry in listing
+        if re.fullmatch(pattern, entry)
+    ]
+    img_paths.sort()
+
+    time_series_length = len(img_paths)
+    dimensions = (256, ) * 3
+
+    # initialize dataset
+    dataset = Dataset(dimensions, time_series_length, dtype=TIFT_DTYPE)
+
+    # load images
+    for i, img_path in enumerate(img_paths):
+        dataset[i] = load_image(img_path)
+
+    return dataset
+
+
+def save_dataset(dataset: Dataset,
+                 folder_path,
+                 filename_format="image{one_based_index:010}.img.z"):
+    logging.info("Saving dataset to folder %s", folder_path)
+
+    # create folder if it does not exist
+    os.makedirs(folder_path, exist_ok=True)
+
+    # save images
+    for i in range(dataset.time_series_length):
+        img = dataset[i]
+        img_path = os.path.join(folder_path,
+                                filename_format.format(one_based_index=i + 1))
+        save_image(img, img_path)
 
 
 # This is a generic MPRAGE header file that has been cleaned of all
