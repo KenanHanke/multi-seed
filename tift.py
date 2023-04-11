@@ -1,7 +1,10 @@
+from concurrent.futures import ThreadPoolExecutor
+import gc
+from typing import Iterable
 from rbloom import Bloom
 import numpy as np
 from image import Image
-from dataset import Dataset
+from dataset import Dataset, DatasetLoader
 import gzip
 import logging
 import os
@@ -84,11 +87,11 @@ def load_dataset(folder_path):
     ]
     img_paths.sort()
 
-    time_series_length = len(img_paths)
+    n_images = len(img_paths)
     dimensions = (256, ) * 3
 
     # initialize dataset
-    dataset = Dataset(dimensions, time_series_length, dtype=TIFT_DTYPE)
+    dataset = Dataset(dimensions, n_images, dtype=TIFT_DTYPE)
 
     # load images
     for i, img_path in enumerate(img_paths):
@@ -115,11 +118,72 @@ def save_dataset(dataset: Dataset,
     os.makedirs(folder_path, exist_ok=True)
 
     # save images
-    for i in range(dataset.time_series_length):
+    for i in range(dataset.n_images):
         img = dataset[i]
         img_path = os.path.join(folder_path,
                                 filename_format.format(one_based_index=i + 1))
         save_image(img, img_path)
+
+
+# This function returns an iterable that can lazily load many datasets
+# given by the argument paths.
+def load_datasets(paths: list, *, asynchronous: bool) -> DatasetLoader:
+    """
+    Load multiple datasets from the specified paths.
+    
+    Args:
+        paths (list): List of paths to load datasets from.
+        asynchronous (bool): Whether to load datasets asynchronously. Setting this to True
+                             uses twice as much memory, but lets the respective subsequent
+                             dataset load in the background while the current dataset is
+                             still being processed.
+
+    Returns:
+        DatasetLoader: Iterable that can be reused to load datasets.
+    """
+
+    def tift_dataset_generator_sync(folder_paths: Iterable[str]):
+        folder_paths = sorted(folder_paths)
+        for path in folder_paths:
+            yield Dataset.load_tift(path)
+            gc.collect()  # free memory
+
+    def tift_dataset_generator_async(folder_paths: Iterable[str]):
+        folder_paths = sorted(folder_paths)
+
+        with ThreadPoolExecutor() as executor:
+            folder_paths = iter(folder_paths)
+
+            # load first dataset
+            try:
+                current_dataset = executor.submit(Dataset.load_tift,
+                                                  next(folder_paths))
+            except StopIteration:  # no datasets to load
+                return
+
+            for path in folder_paths:
+                # wait for current dataset to finish loading
+                current_dataset = current_dataset.result()
+
+                # start loading next dataset in background
+                next_dataset = executor.submit(Dataset.load_tift, path)
+
+                # yield and continue with next dataset
+                yield current_dataset
+                current_dataset = next_dataset
+
+                # free memory
+                gc.collect()
+
+            # yield last dataset
+            yield current_dataset.result()
+
+    if asynchronous:
+        generator_func = tift_dataset_generator_async
+    else:
+        generator_func = tift_dataset_generator_sync
+
+    return DatasetLoader(paths, generator_func)
 
 
 # This is a generic MPRAGE header file that has been cleaned of all

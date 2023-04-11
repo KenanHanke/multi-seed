@@ -7,7 +7,7 @@ from glob import glob
 from dataset import Dataset
 from image import Image, Mask
 from reference import ReferenceBuilder, Reference
-from common import *
+import tift
 
 PATH = "/home/khanke/data/HypoPark/hypoPark/00CONVERTED/CON/REDACTED/fmri301/MNINorm/new_PreProcAll"
 NUM_OF_PRINCIPAL_COMPONENTS = 3
@@ -26,7 +26,7 @@ def main():
     # ensure reproducibility of random numbers
     rng = np.random.default_rng(seed=42)
 
-    # dataset = Dataset.load_tift(PATH)
+    # dataset = tift.load_dataset(PATH)
     # dataset.save("dataset.npz")
     dataset = Dataset.load("dataset.npz")
     # mask = dataset.extract_mask()

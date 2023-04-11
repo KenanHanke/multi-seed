@@ -112,7 +112,7 @@ class ReferenceBuilder:
         """
         logging.info("Building reference from %d points", len(self))
 
-        reference = Reference(len(self), dataset.time_series_length)
+        reference = Reference(len(self), dataset.n_images)
         reference.source = self
         _build_reference(reference.data, dataset.data, self.points,
                          self.radius)
