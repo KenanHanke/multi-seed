@@ -27,6 +27,34 @@ class Image:
         logging.debug("Saving image to %s", path)
         np.savez_compressed(path, data=self.data)
 
+    def normalized(self) -> "Image":
+        if not np.issubdtype(self.dtype, np.floating):
+            raise TypeError("Image must be floating-point to normalize")
+
+        minimum = np.min(self.data)
+        maximum = np.max(self.data)
+
+        new_data = (self.data - minimum) / (maximum - minimum)
+        return self.__class__(data=new_data)
+
+    def scaled(self, factor: float) -> "Image":
+        new_data = self.data * factor
+        return self.__class__(data=new_data)
+
+    def converted(self, dtype) -> "Image":
+        new_data = self.data.astype(dtype)
+        return self.__class__(data=new_data)
+
+    @classmethod
+    def normalize_all(cls, images: list["Image"]) -> list["Image"]:
+        minimum = min(np.min(image.data) for image in images)
+        maximum = max(np.max(image.data) for image in images)
+
+        return [
+            image.__class__(data=(image.data - minimum) / (maximum - minimum))
+            for image in images
+        ]
+
     @property
     def dimensions(self):
         return self.data.shape
@@ -58,3 +86,16 @@ class Mask(Image):
         new_mask = self.copy()
         new_mask |= other
         return new_mask
+
+    def normalized(self):
+        raise NotImplementedError("Mask cannot be normalized")
+
+    def scaled(self, factor):
+        raise NotImplementedError("Mask cannot be scaled")
+
+    def converted(self, dtype):
+        raise NotImplementedError("Mask cannot be converted")
+
+    @classmethod
+    def normalize_all(cls, images):
+        raise NotImplementedError("Masks cannot be normalized")
