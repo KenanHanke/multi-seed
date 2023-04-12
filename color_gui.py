@@ -8,7 +8,14 @@ import tift
 import numpy as np
 from image import Image
 
+# Scale factor for the images (nearest neighbor interpolation)
 SCALE_FACTOR = 1
+
+######################################################################
+# I FORMALLY APOLOGIZE TO ANYONE WHO EVER HAS TO DECIPHER ANY CODE   #
+# PAST THIS POINT. THIS PROGRAM WAS MEANT AS A QUICK AND DIRTY PROOF #
+# OF CONCEPT IMAGE VIEWER. IT DOES WORK FULLY AS INTENDED, HOWEVER.  #
+######################################################################
 
 sg.theme('DarkAmber')
 
