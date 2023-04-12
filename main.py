@@ -3,11 +3,12 @@
 import logging
 import numpy as np
 from glob import glob
-
 from dataset import Dataset
 from image import Image, Mask
 from reference import ReferenceBuilder, Reference
 import tift
+from feature_mapper import UntranslatedPCA
+import os
 
 PATH = "/home/khanke/data/HypoPark/hypoPark/00CONVERTED/CON/REDACTED/fmri301/MNINorm/new_PreProcAll"
 NUM_OF_PRINCIPAL_COMPONENTS = 3
@@ -40,21 +41,13 @@ def main():
     tift.save_image(visualization, "visualization.img.z")
     reference = reference_builder.build(dataset)
 
-    # --------- POSSIBLE INTERFACE --------- #
-    # projection = PCA()
-    # projection.calibrate(dataset, reference)
-    #
-
-    ##########################################
-    ### NOT YET IMPLEMENTED IN NEW VERSION ###
-    ##########################################
-    # print("Creating projection...")
-    # projection = create_projection(NUM_OF_PRINCIPAL_COMPONENTS,
-    #                                reference_points, SIZE_OF_COMPARISON_POINT_SAMPLE, dataset)
-    # print("Calculating results...")
-    # results = calculate_results(projection, reference_points, dataset)
-    # print("Saving results...")
-    # save_results(results, PATH, np.uint8)
+    pca = UntranslatedPCA(NUM_OF_PRINCIPAL_COMPONENTS)
+    pca.fit([dataset],
+            reference,
+            samples_per_dataset=SIZE_OF_COMPARISON_POINT_SAMPLE,
+            rng=rng)
+    result = pca.transform(dataset, reference)
+    tift.save_dataset(result, os.path.join(PATH, "untranslated_pca"))
 
 
 if __name__ == "__main__":

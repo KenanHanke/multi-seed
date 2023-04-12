@@ -3,6 +3,7 @@ from numba import njit, prange
 import logging
 from image import Image, Mask
 from os import sched_getaffinity
+from math_utils import abs_corr_coef
 
 
 class ReferenceBuilder:
@@ -227,7 +228,7 @@ class Reference:
     coefficients can be computed.
 
     Attributes:
-        data (np.array): A 2D array containing the reference time series.
+        data (np.array): A 2D array containing the reference time series. Shape is (n_seeds, time_series_length).
         source (ReferenceBuilder): The ReferenceBuilder instance used to generate the reference time series.
     """
 
@@ -249,3 +250,20 @@ class Reference:
     @property
     def time_series_length(self):
         return self.data.shape[1]
+
+    def apply(self, time_series_array: np.ndarray) -> np.ndarray:
+        return self.__class__._apply(self.data, time_series_array)
+
+    @staticmethod
+    @njit(parallel=True)
+    def _apply(reference_data: np.ndarray,
+               time_series_array: np.ndarray) -> np.ndarray:
+        output = np.zeros(
+            (time_series_array.shape[0], reference_data.shape[0]),
+            dtype=np.float32)
+        for i in prange(time_series_array.shape[0]):
+            point_time_series = time_series_array[i]
+            for j, reference_time_series in enumerate(reference_data):
+                output[i, j] = abs_corr_coef(point_time_series,
+                                             reference_time_series)
+        return output
