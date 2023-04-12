@@ -2,8 +2,9 @@ from rbloom import Bloom
 import numpy as np
 from numba import njit, prange
 import logging
-from image import Mask
+from image import Image, Mask
 from common import sample_points
+from os import sched_getaffinity
 
 
 class ReferenceBuilder:
@@ -100,6 +101,56 @@ class ReferenceBuilder:
     def __len__(self):
         return len(self.points)
 
+    def visualized(self) -> Image:
+        """
+        Visualize the sampled reference regions.
+
+        Returns:
+            Image: A floating point Image object containing the visualization.
+        """
+        image = Image(self.dimensions, dtype=np.float32)
+
+        self.__class__._visualize(image.data, self.points, self.radius,
+                                  len(sched_getaffinity(0)))
+
+        return image
+
+    @staticmethod
+    @njit(parallel=True)
+    def _visualize(image_data, points, radius, availabe_cpus):
+        point_arrs = np.array_split(points, availabe_cpus)
+
+        # If the radius is 0, just put in the point at each voxel
+        if radius <= 0:
+            for point in points:
+                point = (int(point[0]), int(point[1]), int(point[2])
+                         )  # necessary syntax for numba
+                image_data[point] += 1
+            return
+
+        reduction_var = np.zeros_like(image_data)
+
+        # At this point, the radius is guaranteed to be greater than 0
+        for i in prange(availabe_cpus):
+            points = point_arrs[i]
+            data = np.zeros_like(image_data)
+
+            for index, value in np.ndenumerate(data):
+                x, y, z = index
+
+                for point in points:
+                    dist = np.sqrt((x - point[0])**2 + (y - point[1])**2 +
+                                   (z - point[2])**2)
+
+                    if dist <= radius:
+                        value += -dist**2 / radius**2 + 1
+
+                data[index] = value
+
+            reduction_var += data
+
+        image_data += reduction_var
+
     def build(self, dataset):
         """
         Build a Reference object from the sampled points.
@@ -114,30 +165,28 @@ class ReferenceBuilder:
 
         reference = Reference(len(self), dataset.n_images)
         reference.source = self
-        _build_reference(reference.data, dataset.data, self.points,
-                         self.radius)
+        self.__class__._build_reference(reference.data, dataset.data,
+                                        self.points, self.radius)
         return reference
 
-
-############ START OF COMPILED REFERENCEBUILDER HELPER FUNCTIONS ############
-
-
-@njit(parallel=True)
-def _build_reference(reference_data, dataset_data, points, radius):
-    for i in prange(points.shape[0]):
-        point = points[i]
-        point = (
-            int(point[0]),
-            int(point[1]),
-            int(point[2]),
-        )  # necessary syntax for numba
-        if radius <= 0:
-            reference_data[i] = dataset_data[point]
-        else:
-            reference_data[i] = _build_reference_seed(dataset_data, point,
-                                                      radius)
+    @staticmethod
+    @njit(parallel=True)
+    def _build_reference(reference_data, dataset_data, points, radius):
+        for i in prange(points.shape[0]):
+            point = points[i]
+            point = (
+                int(point[0]),
+                int(point[1]),
+                int(point[2]),
+            )  # necessary syntax for numba
+            if radius <= 0:
+                reference_data[i] = dataset_data[point]
+            else:
+                reference_data[i] = _build_reference_seed(
+                    dataset_data, point, radius)
 
 
+# A COMPILED REFERENCEBUILDER HELPER FUNCTION
 @njit
 def _build_reference_seed(dataset_data, point, radius):
     # Returns a time series where each value is the weighted mean of all voxels of the
@@ -172,9 +221,6 @@ def _build_reference_seed(dataset_data, point, radius):
                 time_series += weight * dataset_data[i, j, k]
 
     return time_series / total_weight
-
-
-############ END OF COMPILED REFERENCEBUILDER HELPER FUNCTIONS ############
 
 
 class Reference:
