@@ -8,6 +8,8 @@ import tift
 import numpy as np
 from image import Image
 
+SCALE_FACTOR = 1
+
 sg.theme('DarkAmber')
 
 img_paths = sys.argv[1:4] if len(sys.argv) >= 4 else [sys.argv[1]] * 3
@@ -38,9 +40,15 @@ def get_mri_images(coronal_coordinate,
         axial_rgb[coronal_coordinate, :, :] = 255
         axial_rgb[:, sagittal_coordinate, :] = 255
 
-    coronal_image = PIL.Image.fromarray(coronal_rgb)
-    sagittal_image = PIL.Image.fromarray(saggital_rgb)
-    axial_image = PIL.Image.fromarray(axial_rgb)
+    coronal_image = PIL.Image.fromarray(coronal_rgb).resize(
+        (coronal_rgb.shape[1] * SCALE_FACTOR,
+         coronal_rgb.shape[0] * SCALE_FACTOR), PIL.Image.NEAREST)
+    sagittal_image = PIL.Image.fromarray(saggital_rgb).resize(
+        (saggital_rgb.shape[1] * SCALE_FACTOR,
+         saggital_rgb.shape[0] * SCALE_FACTOR), PIL.Image.NEAREST)
+    axial_image = PIL.Image.fromarray(axial_rgb).resize(
+        (axial_rgb.shape[1] * SCALE_FACTOR, axial_rgb.shape[0] * SCALE_FACTOR),
+        PIL.Image.NEAREST)
 
     return coronal_image, sagittal_image, axial_image
 
@@ -53,7 +61,10 @@ def convert_to_bytes(image):
 
 # GUI layout
 layout = [[
-    sg.Checkbox("Show crosshairs", default=True, key="show_crosshairs")
+    sg.Checkbox("Show crosshairs",
+                default=True,
+                key="show_crosshairs",
+                enable_events=True),
 ],
           [
               sg.Column([[sg.Image(key="coronal_image")],
@@ -62,7 +73,8 @@ layout = [[
                                        orientation="h",
                                        key="coronal_slider",
                                        enable_events=True,
-                                       default_value=128)
+                                       default_value=128,
+                                       expand_x=True)
                          ]]),
               sg.Column([[sg.Image(key="sagittal_image")],
                          [
@@ -70,7 +82,8 @@ layout = [[
                                        orientation="h",
                                        key="sagittal_slider",
                                        enable_events=True,
-                                       default_value=128)
+                                       default_value=128,
+                                       expand_x=True)
                          ]]),
               sg.Column([[sg.Image(key="axial_image")],
                          [
@@ -78,7 +91,8 @@ layout = [[
                                        orientation="h",
                                        key="axial_slider",
                                        enable_events=True,
-                                       default_value=128)
+                                       default_value=128,
+                                       expand_x=True)
                          ]])
           ]]
 
