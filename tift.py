@@ -34,7 +34,7 @@ def load_image(path):
 
     raw_data = np.frombuffer(raw_data, dtype=TIFT_DTYPE)
 
-    dimensions = (256, ) * 3
+    dimensions = (256,) * 3
     image = Image(data=raw_data.reshape(dimensions))
     return image
 
@@ -52,6 +52,9 @@ def save_image(image: Image, path):
     Raises:
         ValueError: If the TIFT image path does not end with .img.z.
     """
+    if not image.dtype == TIFT_DTYPE:
+        raise ValueError("TIFT image dtype must be the same as the TIFT_DTYPE constant")
+
     if not path.endswith(".img.z"):
         raise ValueError("TIFT image path must end with .img.z")
 
@@ -82,13 +85,14 @@ def load_dataset(folder_path):
     pattern = r"f\d{10}\.img\.z"
     listing = os.listdir(folder_path)
     img_paths = [
-        os.path.join(folder_path, entry) for entry in listing
+        os.path.join(folder_path, entry)
+        for entry in listing
         if re.fullmatch(pattern, entry)
     ]
     img_paths.sort()
 
     n_images = len(img_paths)
-    dimensions = (256, ) * 3
+    dimensions = (256,) * 3
 
     # initialize dataset
     dataset = Dataset(dimensions, n_images, dtype=TIFT_DTYPE)
@@ -156,8 +160,7 @@ def load_datasets(paths: list, *, asynchronous: bool) -> DatasetLoader:
 
             # load first dataset
             try:
-                current_dataset = executor.submit(Dataset.load_tift,
-                                                  next(folder_paths))
+                current_dataset = executor.submit(Dataset.load_tift, next(folder_paths))
             except StopIteration:  # no datasets to load
                 return
 
@@ -205,8 +208,7 @@ _GENERIC_MPRAGE_HEADER = (
     b"\x03\x00\x00\x01\x00\x01\x00\x01\x01\x00\x01\x00\x01\x00\x01\x00" +
     b"mm\x00\x00\x00\x00\x00\x00\x00\x00\x9c\xff\x00\x00\x04\x00\x10" +
     b"\x00\x00\x00\x00\x00\x80\xbf\x00\x00\x80?\x00\x00\x80?\x00\x00\x80?" +
-    b"\x00" * 56 + b"SPM compatible    \x00\x00\xee\xf076\x9e\x7f" +
-    b"\x00" * 10 +
+    b"\x00" * 56 + b"SPM compatible    \x00\x00\xee\xf076\x9e\x7f" + b"\x00" * 10 +
     b"\x80\xf3\xcd\xfa\xfc\x7f\x00\x00\xf0\xf3\xcd\xbe\xfc\x7f" +
     b"\x00\x00\x00\xd7q\xcb\x8cHl(" + b"\x00" * 16 +
     b"\xf0\xf3\xcd\xbenone    \x00\x7f" + b"\x00" * 13 +
