@@ -24,13 +24,17 @@ def abs_corr_coef(time_series_1, time_series_2):
     """
     n = len(time_series_1)
 
-    sum_1 = np.sum(time_series_1)
-    sum_2 = np.sum(time_series_2)
+    # explicitly use int64 to prevent overflow
 
-    sum_sq_1 = np.sum(np.square(time_series_1))
-    sum_sq_2 = np.sum(np.square(time_series_2))
+    sum_1 = np.sum(time_series_1, dtype=np.int64)
+    sum_2 = np.sum(time_series_2, dtype=np.int64)
 
-    sum_prod = np.sum(time_series_1 * time_series_2)
+    sum_sq_1 = np.sum(np.square(time_series_1, dtype=np.int64), dtype=np.int64)
+    sum_sq_2 = np.sum(np.square(time_series_2, dtype=np.int64), dtype=np.int64)
+
+    sum_prod = np.sum(time_series_1.astype(np.int64) *
+                      time_series_2.astype(np.int64),
+                      dtype=np.int64)
 
     numerator = n * sum_prod - sum_1 * sum_2
     denominator = ((n * sum_sq_1 - sum_1**2) * (n * sum_sq_2 - sum_2**2))**0.5
@@ -41,7 +45,7 @@ def abs_corr_coef(time_series_1, time_series_2):
         return np.abs(numerator / denominator)
 
 
-class UntranslatedPCA:
+class UntranslatedPCAInterface:
     """
     A PCA implementation that does not translate the data before
     performing the transformation. Partially implements the interface
