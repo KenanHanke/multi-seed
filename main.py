@@ -33,8 +33,11 @@ def main():
     # mask.save("mask.npz")
     mask = Mask.load("mask_combined.npz")
 
-    reference_builder = ReferenceBuilder(radius=10, mask=mask)
+    reference_builder = ReferenceBuilder(radius=20, mask=mask)
     reference_builder.sample(N, rng)
+    visualization = reference_builder.visualized().normalized()
+    visualization = visualization.scaled(256).converted(np.uint16)
+    tift.save_image(visualization, "visualization.img.z")
     reference = reference_builder.build(dataset)
 
     # --------- POSSIBLE INTERFACE --------- #

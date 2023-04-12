@@ -1,5 +1,6 @@
 import numpy as np
 import logging
+from rbloom import Bloom
 
 
 class Image:
@@ -191,6 +192,37 @@ class Mask(Image):
             data (optional): Pre-existing mask data.
         """
         super().__init__(dimensions, dtype=dtype, data=data)
+
+    def sample(self, n_points: int, *, rng=None):
+        """
+        Sample n_points. Each point is guaranteed to be unique.
+
+        Args:
+            n_points (int): The number of points to sample.
+            rng (np.random.Generator, optional): A random number generator to use for sampling points.
+
+        Returns:
+            np.array: An array containing the 3D coordinates of the sampled points. The shape of the array is (n_points, 3).
+        """
+        logging.info("Sampling %d unique points", n_points)
+
+        points = np.empty((n_points, 3), dtype=np.int16)
+
+        if rng is None:
+            rng = np.random.default_rng()
+
+        points_so_far = Bloom(n_points * 100, 0.01)
+
+        i = 0
+        while i < n_points:
+            point = tuple(rng.integers(self.dimensions, size=3))
+            if self.data[point]:
+                if point not in points_so_far:
+                    points[i] = point
+                    points_so_far.add(point)
+                    i += 1
+
+        return points
 
     def __ior__(self, other: "Mask"):
         """

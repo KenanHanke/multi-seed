@@ -45,3 +45,21 @@ class TranslatedPCA(FeatureMapper):
 
     Uses sklearn's PCA implementation, which automatically centers the data.
     """
+
+    def __init__(self, n_components):
+        self.pca = sklearn.decomposition.PCA(
+            n_components=n_components
+        )  # use svd_solver='full' for more accuracy but worse performance
+
+    def fit(self,
+            datasets: Iterable[Dataset],
+            reference: Reference,
+            *,
+            samples_per_dataset: int,
+            rng=None):
+        X = np.empty((samples_per_dataset * len(datasets), reference.n_seeds),
+                     dtype=np.float32)
+
+        for dataset in datasets:
+            points = dataset.extract_mask().sample(samples_per_dataset,
+                                                   rng=rng)

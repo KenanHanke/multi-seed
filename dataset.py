@@ -84,7 +84,7 @@ class Dataset:
 class DatasetLoader(Iterable[Dataset]):
     """
     Reusable iterable that lazily loads datasets. Instances should only
-    be created by internal functions.
+    explicitly be created by internal wrapper functions.
     """
 
     def __init__(self, paths: list, generator_func):

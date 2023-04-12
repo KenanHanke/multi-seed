@@ -1,9 +1,7 @@
-from rbloom import Bloom
 import numpy as np
 from numba import njit, prange
 import logging
 from image import Image, Mask
-from common import sample_points
 from os import sched_getaffinity
 
 
@@ -64,7 +62,7 @@ class ReferenceBuilder:
                 "Cannot sample new points from a loaded ReferenceBuilder instance"
             )
 
-        self.points = sample_points(n_points, mask=self.mask, rng=rng)
+        self.points = self.mask.sample(n_points, rng=rng)
 
     def save(self, path):
         """
@@ -243,3 +241,11 @@ class Reference:
         """
         self.data = np.zeros((n_seeds, time_series_length), dtype=np.float64)
         self.source: ReferenceBuilder = None
+
+    @property
+    def n_seeds(self):
+        return self.data.shape[0]
+
+    @property
+    def time_series_length(self):
+        return self.data.shape[1]
