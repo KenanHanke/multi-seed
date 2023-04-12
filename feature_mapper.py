@@ -26,14 +26,15 @@ class FeatureMapper(ABC):
 
     @abstractmethod
     def fit(self,
-            *,
             datasets: Iterable[Dataset],
             reference: Reference,
+            *,
+            samples_per_dataset: int,
             rng=None):
         ...
 
     @abstractmethod
-    def transform(self, X):
+    def transform(self, dataset: Dataset, reference: Reference) -> Dataset:
         ...
 
 
