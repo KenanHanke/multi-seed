@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import PySimpleGUI as sg
-import PIL.Image
+import PIL.Image, PIL.ImageOps
 import io
 import sys
 import tift
@@ -18,39 +18,46 @@ imgs: list[np.ndarray] = [
     img.converted(np.float32).normalized().scaled(255).converted(np.uint8).data
     for img in imgs
 ]
+imgs = [img[::-1, ::-1, ::-1] for img in imgs]
 
 
-def get_mri_images(coronal_coordinate,
+def get_mri_images(axial_coordinate,
+                   coronal_coordinate,
                    sagittal_coordinate,
-                   axial_coordinate,
                    show_crosshairs=True):
+    axial_coordinate = 256 - axial_coordinate
     coronal_coordinate -= 1
-    sagittal_coordinate -= 1
-    axial_coordinate -= 1
+    sagittal_coordinate = 256 - sagittal_coordinate
 
-    coronal_rgb = np.stack([imgs[0][coronal_coordinate, :, :]] * 3, axis=-1)
-    saggital_rgb = np.stack([imgs[1][:, sagittal_coordinate, :]] * 3, axis=-1)
-    axial_rgb = np.stack([imgs[2][:, :, axial_coordinate]] * 3, axis=-1)
+    axial_rgb = np.stack([imgs[i][axial_coordinate, :, :] for i in range(3)],
+                         axis=-1)
+    saggital_rgb = np.stack(
+        [imgs[i][:, coronal_coordinate, :] for i in range(3)], axis=-1)
+    sagittal_rgb = np.stack(
+        [imgs[i][:, :, sagittal_coordinate] for i in range(3)], axis=-1)
 
     if show_crosshairs:
-        coronal_rgb[sagittal_coordinate, :, :] = 255
-        coronal_rgb[:, axial_coordinate, :] = 255
-        saggital_rgb[coronal_coordinate, :, :] = 255
-        saggital_rgb[:, axial_coordinate, :] = 255
         axial_rgb[coronal_coordinate, :, :] = 255
         axial_rgb[:, sagittal_coordinate, :] = 255
+        saggital_rgb[axial_coordinate, :, :] = 255
+        saggital_rgb[:, sagittal_coordinate, :] = 255
+        sagittal_rgb[axial_coordinate, :, :] = 255
+        sagittal_rgb[:, coronal_coordinate, :] = 255
 
-    coronal_image = PIL.Image.fromarray(coronal_rgb).resize(
-        (coronal_rgb.shape[1] * SCALE_FACTOR,
-         coronal_rgb.shape[0] * SCALE_FACTOR), PIL.Image.NEAREST)
-    sagittal_image = PIL.Image.fromarray(saggital_rgb).resize(
-        (saggital_rgb.shape[1] * SCALE_FACTOR,
-         saggital_rgb.shape[0] * SCALE_FACTOR), PIL.Image.NEAREST)
     axial_image = PIL.Image.fromarray(axial_rgb).resize(
         (axial_rgb.shape[1] * SCALE_FACTOR, axial_rgb.shape[0] * SCALE_FACTOR),
         PIL.Image.NEAREST)
+    coronal_image = PIL.Image.fromarray(saggital_rgb).resize(
+        (saggital_rgb.shape[1] * SCALE_FACTOR,
+         saggital_rgb.shape[0] * SCALE_FACTOR), PIL.Image.NEAREST)
+    sagittal_image = PIL.Image.fromarray(sagittal_rgb).resize(
+        (sagittal_rgb.shape[1] * SCALE_FACTOR,
+         sagittal_rgb.shape[0] * SCALE_FACTOR), PIL.Image.NEAREST)
 
-    return coronal_image, sagittal_image, axial_image
+    axial_image = PIL.ImageOps.mirror(axial_image)
+    coronal_image = PIL.ImageOps.mirror(coronal_image)
+
+    return axial_image, coronal_image, sagittal_image
 
 
 def convert_to_bytes(image):
@@ -96,14 +103,14 @@ layout = [[
                          ]])
           ]]
 
-window = sg.Window("Color Viewer", layout, finalize=True)
+window = sg.Window("Image Viewer", layout, finalize=True)
 
-coronal_image, sagittal_image, axial_image = get_mri_images(
+axial_image, coronal_image, sagittal_image = get_mri_images(
     128, 128, 128, True)
 
+window["axial_image"].update(data=convert_to_bytes(axial_image))
 window["coronal_image"].update(data=convert_to_bytes(coronal_image))
 window["sagittal_image"].update(data=convert_to_bytes(sagittal_image))
-window["axial_image"].update(data=convert_to_bytes(axial_image))
 
 while True:
     event, values = window.read()
@@ -111,19 +118,19 @@ while True:
     if event == sg.WIN_CLOSED:
         break
 
-    if event in ("coronal_slider", "sagittal_slider", "axial_slider",
+    if event in ("axial_slider", "coronal_slider", "sagittal_slider",
                  "show_crosshairs"):
+        axial_coordinate = int(values["axial_slider"])
         coronal_coordinate = int(values["coronal_slider"])
         sagittal_coordinate = int(values["sagittal_slider"])
-        axial_coordinate = int(values["axial_slider"])
         show_crosshairs = values["show_crosshairs"]
 
-        coronal_image, sagittal_image, axial_image = get_mri_images(
-            coronal_coordinate, sagittal_coordinate, axial_coordinate,
+        axial_image, coronal_image, sagittal_image = get_mri_images(
+            axial_coordinate, coronal_coordinate, sagittal_coordinate,
             show_crosshairs)
 
+        window["axial_image"].update(data=convert_to_bytes(axial_image))
         window["coronal_image"].update(data=convert_to_bytes(coronal_image))
         window["sagittal_image"].update(data=convert_to_bytes(sagittal_image))
-        window["axial_image"].update(data=convert_to_bytes(axial_image))
 
 window.close()
