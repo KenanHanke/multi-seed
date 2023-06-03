@@ -97,6 +97,14 @@ class DatasetLoader(Iterable[Dataset]):
     def __len__(self):
         return len(self.paths)
 
+    def __iadd__(self, other: 'DatasetLoader'):
+        self.paths += other.paths
+        return self
+
+    def __add__(self, other: 'DatasetLoader'):
+        paths = self.paths + other.paths
+        return DatasetLoader(paths, self.generator_func)
+
     def extract_mask(self):
         """
         Accumulate a mask from the given datasets.

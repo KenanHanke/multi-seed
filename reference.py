@@ -263,6 +263,10 @@ class Reference:
             dtype=np.float32)
         for i in prange(time_series_array.shape[0]):
             point_time_series = time_series_array[i]
+
+            if not np.any(point_time_series):
+                continue  # empty time series have no correlation
+
             for j, reference_time_series in enumerate(reference_data):
                 output[i, j] = abs_corr_coef(point_time_series,
                                              reference_time_series)
