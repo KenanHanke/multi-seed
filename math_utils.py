@@ -40,7 +40,7 @@ def abs_corr_coef(time_series_1, time_series_2):
     else:
         r = numerator / denominator
 
-    return r
+    return abs(r)
 
 
 class UntranslatedPCA:
