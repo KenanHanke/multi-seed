@@ -193,7 +193,7 @@ class Mask(Image):
         """
         super().__init__(dimensions, dtype=dtype, data=data)
 
-    def sample(self, n_points: int, *, rng=None):
+    def sample(self, n_points: int, *, rng=None) -> np.array:
         """
         Sample n_points. Each point is guaranteed to be unique.
 
