@@ -16,11 +16,11 @@ default_config_str = """
 # The following parameters can be set at the top of the file. Values listed
 # here are the defaults that will be used when not specified explicitly.
 # Underscores, order of variables and whitespace around equals signs are
-# ignored.
+# ignored. Previously set variables can be referenced in later variables,
+# e.g. COMPARISON_FOLDER = path/to/folder/reduced_{REDUCTION_ALGORITHM}.
 
 
-# This flag determines if datasets are read and enqueued in the background,
-# which uses twice as much memory but can save a lot of time on some systems:
+# Enqueueing subsequent datasets asynchronously uses 2x the RAM but saves time
 PARALLEL_IO = FALSE
 
 # Parameters for sampling of seeds
@@ -33,9 +33,8 @@ N_FEATURES = 20                # Number of dimensions kept during reduction
 N_SAMPLES_PER_DATASET = 5000   # Number of sample voxels per dataset to use
                                #    when calibrating reduction algorithm
 
-# The following folder will be used for results of interindividual comparison.
-# Setting this to NULL will forgo this calculation entirely. Otherwise, use a
-# folder path.
+# The folder at the following path will be used for results of interindividual
+# comparison. Setting this to NULL will forgo this calculation entirely.
 COMPARISON_FOLDER = NULL
 
 # -----------------------------------------------------------------------------
@@ -82,14 +81,23 @@ class Config:
                 key, _, value = line.partition('=')
                 key, value = key.strip(), value.strip()
 
-                # reinterpret value as int/bool/None if possible
+                # reinterpret value as if possible
                 if value.isdigit():
                     value = int(value)
                 elif value.lower() in ('true', 'false'):
                     value = value.lower() == 'true'
                 elif value.lower() == 'null':
                     value = None
+                else:
+                    # format string values to allow referencing previously set
+                    # variables; replace True/False/None with TRUE/FALSE/NULL
+                    value = value.format_map({
+                        k: "TRUE" if v == True else
+                        "FALSE" if v == False else "NULL" if v is None else v
+                        for k, v in params.items()
+                    })
 
+                # store interpreted value
                 params[key] = value
 
             # handle cohort paths
