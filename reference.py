@@ -3,7 +3,7 @@ from numba import njit, prange
 import logging
 from image import Image, Mask
 from os import sched_getaffinity
-from math_utils import abs_corr_coef
+from math_utils import corr_coef
 
 
 class ReferenceBuilder:
@@ -245,13 +245,34 @@ class Reference:
 
     @property
     def n_seeds(self):
+        """
+        Returns the number of reference time series.
+
+        Returns:
+            int: The number of reference time series.
+        """
         return self.data.shape[0]
 
     @property
     def time_series_length(self):
+        """
+        Returns the length of each time series.
+
+        Returns:
+            int: The length of each time series.
+        """
         return self.data.shape[1]
 
     def apply(self, time_series_array: np.ndarray) -> np.ndarray:
+        """
+        Compute correlation coefficients for each pair of reference time series and point time series.
+
+        Args:
+            time_series_array (np.ndarray): An array of point time series, of shape (n_points, time_series_length).
+
+        Returns:
+            np.ndarray: An array of correlation coefficients.
+        """
         return self.__class__._apply(self.data, time_series_array)
 
     @staticmethod
@@ -268,6 +289,6 @@ class Reference:
                 continue  # empty time series have no correlation
 
             for j, reference_time_series in enumerate(reference_data):
-                output[i, j] = abs_corr_coef(point_time_series,
-                                             reference_time_series)
+                output[i, j] = corr_coef(point_time_series,
+                                         reference_time_series)
         return output
