@@ -4,9 +4,7 @@ import numpy as np
 import sklearn.decomposition
 from dataset import Dataset
 from reference import Reference
-from math_utils import UntranslatedPCAInterface
-from functools import reduce
-from operator import mul
+import logging
 
 
 class FeatureMapper(ABC):
@@ -16,8 +14,7 @@ class FeatureMapper(ABC):
     vector space to a lower-dimensional feature space.
     """
 
-    @abstractmethod
-    def __init__(self, n_features):
+    def __init__(self, n_features, reference: Reference):
         """
         Initialize the feature extractor with the number of features
         it should extract.
@@ -25,80 +22,86 @@ class FeatureMapper(ABC):
         Args:
             n_features: The number of features to extract.
         """
-        ...
-
-    @abstractmethod
-    def fit(self,
-            datasets: Iterable[Dataset],
-            reference: Reference,
-            *,
-            samples_per_dataset: int,
-            rng=None):
-        ...
-
-    @abstractmethod
-    def transform(self, dataset: Dataset, reference: Reference) -> Dataset:
-        ...
-
-
-class TranslatedPCA(FeatureMapper):
-    """
-    A mapping that performs PCA on the dataset. No prior standardization
-    is performed because all dimensions are correlation coefficients.
-
-    Uses sklearn's PCA implementation, which automatically centers the data.
-    """
-
-    def __init__(self, n_components):
-        self.pca = sklearn.decomposition.PCA(
-            n_components=n_components
-        )  # use svd_solver='full' for more accuracy but worse performance
-
-    ...
-
-
-class UntranslatedPCA(FeatureMapper):
-
-    def __init__(self, n_components):
-        self.pca = UntranslatedPCAInterface(n_components)
-        self.n_features = n_components
+        self.n_features = n_features
+        self.reference = reference
+        self.reduction_model: type = self.reduction_impl(n_features)
 
     def fit(self,
             datasets: Iterable[Dataset],
-            reference: Reference,
             *,
             samples_per_dataset: int,
             rng=None):
-        X = np.empty((samples_per_dataset * len(datasets), reference.n_seeds),
-                     dtype=np.float32)
+        """
+        Fit the model to the given datasets.
+        
+        Args:
+            datasets: The datasets to fit the model to.
+            samples_per_dataset: The number of samples to extract from each dataset.
+            rng: The random number generator to use.
+        """
 
+        # initialize the model
+        X = np.empty(
+            (samples_per_dataset * len(datasets), self.reference.n_seeds),
+            dtype=np.float32,
+        )
+
+        logging.info("Extracting samples from datasets...")
         for i, dataset in enumerate(datasets):
             points = dataset.extract_mask().sample(samples_per_dataset,
                                                    rng=rng)
 
             time_series_length = dataset.n_images
-            time_series_array = np.empty((len(points), time_series_length),
-                                         dtype=dataset.dtype)
+            time_series_collection = np.empty(
+                (len(points), time_series_length), dtype=dataset.dtype)
 
             for j, point in enumerate(points):
-                time_series_array[j] = dataset.data[point]
+                point = tuple(point)
+                # copy the time series at the point into
+                # the time_series_collection at index j
+                time_series_collection[j] = dataset.data[point]
 
-            X[i * samples_per_dataset:(i + 1) *
-              samples_per_dataset] = reference.apply(time_series_array)
+            res = self.reference.apply(time_series_collection)
 
-        self.pca.fit(X)
+            # copy the result into X
+            X[i * samples_per_dataset:(i + 1) * samples_per_dataset] = res
 
-    def transform(self, dataset: Dataset, reference: Reference) -> Dataset:
+        logging.info("Fitting model "
+                     f"({self.reduction_model.__class__.__name__})...")
+        self.reduction_model.fit(X)
+
+    def transform(self, dataset: Dataset) -> Dataset:
         float_result = Dataset(dataset.dimensions,
                                self.n_features,
                                dtype=np.float32)
-        time_series_arrays = dataset.data.reshape(
-            (dataset.dimensions[0], -1, dataset.n_images))
-        for i, time_series_array in enumerate(time_series_arrays):
-            X = reference.apply(time_series_array)
-            float_result.data[i] = self.pca.transform(X).reshape(
-                (-1, self.n_features))
+        """
+        Transform the given dataset into the feature space defined by the
+        fitted model.
+        
+        Args:
+            dataset: The dataset to transform.
+        """
 
+        # essentially a bunch of slices, each as raw data
+        # (no coordinate info; second dimension is merely time series length)
+        time_series_collections = dataset.data.reshape((
+            dataset.dimensions[0],
+            -1,
+            dataset.n_images,
+        ))
+
+        logging.info("Transforming dataset...")
+        for i, time_series_collection in enumerate(time_series_collections):
+            logging.debug(f"Transforming slice {i+1}/"
+                          f"{len(time_series_collections)}...")
+            X = self.reference.apply(time_series_collection)
+
+            float_result.data[i] = self.reduction_model.transform(X).reshape((
+                *float_result.dimensions[1:],
+                self.n_features,
+            ))
+
+        logging.debug("Converting result to original data type...")
         result = Dataset(float_result.dimensions,
                          float_result.n_images,
                          dtype=dataset.dtype)
@@ -109,3 +112,27 @@ class UntranslatedPCA(FeatureMapper):
             result[i] = image
 
         return result
+
+    @property
+    @abstractmethod
+    def reduction_impl(self):
+        """
+        Returns the class of the reduction model to use.
+        
+        Returns:
+            The class of the reduction model to use.
+        """
+        pass
+
+
+class PCAMapper(FeatureMapper):
+    """
+    A mapping that performs PCA on the dataset. No prior standardization
+    is performed because all dimensions are correlation coefficients.
+
+    Uses sklearn's PCA implementation, which automatically centers the data.
+    """
+
+    @property
+    def reduction_impl(self):
+        return sklearn.decomposition.PCA
