@@ -95,6 +95,7 @@ class Config:
             # handle cohort paths
             else:
                 paths = [os.path.abspath(path) for path in glob.glob(line)]
+                paths.sort()
                 cohorts[current_cohort].extend(paths)
 
         return params, cohorts
