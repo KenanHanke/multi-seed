@@ -1,6 +1,10 @@
 import glob
 import os
 
+# When changing variables and their defaults, only the default_config_str
+# variable needs to be changed. The rest of the code will adapt automatically,
+# as the Config class has no concept of specific variables and their defaults.
+
 default_config_str = """
 # This is a config file for fMRI data analysis. Characters following hashtags
 # on the same line are not interpreted. Empty lines and whitespace that is not
