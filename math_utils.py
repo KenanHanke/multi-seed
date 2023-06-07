@@ -3,7 +3,7 @@ from numba import njit
 
 
 @njit
-def abs_corr_coef(time_series_1, time_series_2):
+def corr_coef(time_series_1, time_series_2):
     """
     Computes the absolute value of the correlation coefficient between
     two time series. This is a measure of functional connectivity. The
@@ -40,7 +40,7 @@ def abs_corr_coef(time_series_1, time_series_2):
     else:
         r = numerator / denominator
 
-    return abs(r)
+    return r
 
 
 class UntranslatedPCA:
