@@ -15,7 +15,7 @@ default_config_str = """
 
 # The following parameters can be set at the top of the file. Values listed
 # here are the defaults that will be used when not specified explicitly.
-# Underscores, case, order of variables and whitespace around equals signs are
+# Underscores, order of variables and whitespace around equals signs are
 # ignored.
 
 
@@ -79,7 +79,7 @@ class Config:
 
             # handle parameters
             elif current_cohort is None:
-                key, _, value = line.upper().partition('=')
+                key, _, value = line.partition('=')
                 key, value = key.strip(), value.strip()
 
                 # reinterpret value as int/bool/None if possible
@@ -107,12 +107,11 @@ class Config:
     @classmethod
     def from_str(cls, config_str):
         # Interpret default and custom config strings
-        params, cohorts = cls._interpret_config_str(default_config_str)
-        custom_params, custom_cohorts = cls._interpret_config_str(config_str)
+        params, _ = cls._interpret_config_str(default_config_str)
+        custom_params, cohorts = cls._interpret_config_str(config_str)
 
         # Override defaults with custom values
         params.update(custom_params)
-        cohorts.update(custom_cohorts)
 
         return cls(params, cohorts)
 
@@ -121,7 +120,9 @@ class Config:
         for k, v in self.params.items():
             if v is None:
                 v = 'NULL'
-            a.append(f"{k} = {v}".upper())
+            if not isinstance(v, str):
+                v = str(v).upper()
+            a.append(f"{k} = {v}")
         for k, v in self.cohorts.items():
             a.append(f"\n[{k}]")
             for path in v:
