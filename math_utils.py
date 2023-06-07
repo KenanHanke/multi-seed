@@ -43,26 +43,18 @@ def corr_coef(time_series_1, time_series_2):
     return r
 
 
-class UntranslatedPCA:
+class PCA:
     """
-    A PCA implementation that does not translate the data before
-    performing the transformation. Partially implements the interface
-    of sklearn.decomposition.PCA. When run on pre-centered data, the
-    results are identical to sklearn's PCA class when it has been
-    initialized with the argument svd_solver='full', except for signs
-    of the principal component basis vectors (which are arbitrary).
+    A PCA implementation that partially implements the interface of
+    sklearn.decomposition.PCA. Its results are identical to sklearn's PCA
+    class when it has been initialized with the argument svd_solver='full',
+    except for signs of the principal component basis vectors (which are
+    arbitrary).
     """
-
-    # Lines that would perform a translation are included for reference
-    # but are commented out. It has been verified that the results of
-    # running this class with the translation lines not commented out
-    # are identical to the results of running sklearn's PCA class with
-    # the argument svd_solver='full', except for signs of the principal
-    # component basis vectors, which are arbitrary.
 
     def __init__(self, n_components):
         """
-        Initialize the UntranslatedPCA instance with the specified number of principal components.
+        Initialize the PCA instance with the specified number of principal components.
 
         Args:
             n_components (int): Number of principal components to be retained.
@@ -70,19 +62,17 @@ class UntranslatedPCA:
         self.n_components = n_components
         self.components = None
 
-        # FOLLOWING LINE IS INCLUDED ONLY FOR REFERENCE
-        # self.mean = None
+        self.mean = None
 
     def fit(self, X):
         """
-        Compute the principal components of the input data without centering it.
+        Compute the principal components of the input data.
 
         Args:
             X (numpy array-like): Input data, shape (n_samples, n_features).
         """
-        # FOLLOWING LINES ARE INCLUDED ONLY FOR REFERENCE
-        # self.mean = np.mean(X, axis=0)
-        # X = X - self.mean
+        self.mean = np.mean(X, axis=0)
+        X = X - self.mean
 
         # compute the covariance matrix
         cov_matrix = np.cov(X, rowvar=False)
@@ -100,7 +90,7 @@ class UntranslatedPCA:
 
     def transform(self, X):
         """
-        Apply the UntranslatedPCA transformation to the input data without centering it.
+        Apply the PCA transformation to the input data.
 
         Args:
             X (numpy array-like): Input data, shape (n_samples, n_features).
@@ -108,8 +98,7 @@ class UntranslatedPCA:
         Returns:
             numpy array-like: Transformed data, shape (n_samples, n_components).
         """
-        # FOLLOWING LINE IS INCLUDED ONLY FOR REFERENCE
-        # X = X - self.mean
+        X = X - self.mean
 
         # the order of the arguments seems backwards, but it's correct
         # because the vectors are horizontal and we're therefore
