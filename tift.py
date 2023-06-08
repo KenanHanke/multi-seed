@@ -116,6 +116,8 @@ def save_dataset(dataset: Dataset,
         filename_format (str, optional): Filename format for images in the dataset.
                                          Defaults to "image{one_based_index:010}.img.z".
     """
+    assert dataset.dtype == TIFT_DTYPE
+
     logging.info("Saving dataset to folder %s", folder_path)
 
     # create folder if it does not exist
