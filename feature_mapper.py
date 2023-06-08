@@ -3,8 +3,16 @@ from typing import Iterable
 import numpy as np
 import sklearn.decomposition
 from dataset import Dataset
-from reference import Reference
+from reference import ReferenceBuilder
 import logging
+
+
+def name_to_mapper_class(mapper_name) -> type['FeatureMapper']:
+    match mapper_name:
+        case "PCA":
+            return PCAMapper
+        case _:
+            raise ValueError("Inappropriate mapper algorithm name")
 
 
 class FeatureMapper(ABC):
@@ -14,7 +22,7 @@ class FeatureMapper(ABC):
     vector space to a lower-dimensional feature space.
     """
 
-    def __init__(self, n_features, reference: Reference):
+    def __init__(self, n_features, reference_builder: ReferenceBuilder):
         """
         Initialize the feature extractor with the number of features
         it should extract.
@@ -23,7 +31,7 @@ class FeatureMapper(ABC):
             n_features: The number of features to extract.
         """
         self.n_features = n_features
-        self.reference = reference
+        self.reference_builder = reference_builder
         self.reduction_model: type = self.reduction_impl(n_features)
 
     def fit(self,
@@ -42,7 +50,8 @@ class FeatureMapper(ABC):
 
         # initialize the model
         X = np.empty(
-            (samples_per_dataset * len(datasets), self.reference.n_seeds),
+            (samples_per_dataset * len(datasets),
+             self.reference_builder.n_seeds),
             dtype=np.float32,
         )
 
@@ -61,7 +70,8 @@ class FeatureMapper(ABC):
                 # the time_series_collection at index j
                 time_series_collection[j] = dataset.data[point]
 
-            res = self.reference.apply(time_series_collection)
+            reference = self.reference_builder.build(dataset)
+            res = reference.apply(time_series_collection)
 
             # copy the result into X
             X[i * samples_per_dataset:(i + 1) * samples_per_dataset] = res
@@ -81,6 +91,7 @@ class FeatureMapper(ABC):
         Args:
             dataset: The dataset to transform.
         """
+        reference = self.reference_builder.build(dataset)
 
         # essentially a bunch of slices, each as raw data
         # (no coordinate info; second dimension is merely time series length)
@@ -94,7 +105,7 @@ class FeatureMapper(ABC):
         for i, time_series_collection in enumerate(time_series_collections):
             logging.debug(f"Transforming slice {i+1}/"
                           f"{len(time_series_collections)}...")
-            X = self.reference.apply(time_series_collection)
+            X = reference.apply(time_series_collection)
 
             float_result.data[i] = self.reduction_model.transform(X).reshape((
                 *float_result.dimensions[1:],
