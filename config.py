@@ -1,5 +1,6 @@
 import glob
 import os
+from typing import Any
 
 # When changing variables and their defaults, only the default_config_str
 # variable needs to be changed. The rest of the code will adapt automatically,
@@ -56,7 +57,7 @@ COMPARISON_FOLDER = NULL
 
 class Config:
 
-    def __init__(self, params: dict, cohorts: dict):
+    def __init__(self, params: dict[str, Any], cohorts: dict[str, list[str]]):
         self.params = params
         self.cohorts = cohorts
 
