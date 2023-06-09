@@ -32,7 +32,7 @@ class FeatureMapper(ABC):
         """
         self.n_features = n_features
         self.reference_builder = reference_builder
-        self.reduction_model: type = self.reduction_impl(n_features)
+        self.reduction_model = self.reduction_impl(n_features)
 
     def fit(self,
             datasets: Iterable[Dataset],
@@ -81,16 +81,16 @@ class FeatureMapper(ABC):
         self.reduction_model.fit(X)
 
     def transform(self, dataset: Dataset) -> Dataset:
-        float_result = Dataset(dataset.dimensions,
-                               self.n_features,
-                               dtype=np.float32)
         """
         Transform the given dataset into the feature space defined by the
-        fitted model.
+        fitted model. The result is a float dataset!
         
         Args:
             dataset: The dataset to transform.
         """
+        float_result = Dataset(dataset.dimensions,
+                               self.n_features,
+                               dtype=np.float32)
         reference = self.reference_builder.build(dataset)
 
         # essentially a bunch of slices, each as raw data
@@ -112,21 +112,11 @@ class FeatureMapper(ABC):
                 self.n_features,
             ))
 
-        logging.debug("Converting result to original data type...")
-        result = Dataset(float_result.dimensions,
-                         float_result.n_images,
-                         dtype=dataset.dtype)
-
-        for i, image in enumerate(float_result):
-            image = image.normalized().scaled(2**16 - 1)
-            image = image.converted(dataset.dtype)
-            result[i] = image
-
-        return result
+        return float_result
 
     @property
     @abstractmethod
-    def reduction_impl(self):
+    def reduction_impl(self) -> type:
         """
         Returns the class of the reduction model to use.
         
