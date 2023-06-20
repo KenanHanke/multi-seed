@@ -100,6 +100,10 @@ class ReferenceBuilder:
     def __len__(self):
         return len(self.points)
 
+    @property
+    def n_seeds(self):
+        return len(self)
+
     def visualized(self) -> Image:
         """
         Visualize the sampled reference regions.
