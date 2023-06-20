@@ -151,7 +151,7 @@ def load_datasets(paths: list, *, asynchronous: bool) -> DatasetLoader:
     def tift_dataset_generator_sync(folder_paths: Iterable[str]):
         folder_paths = sorted(folder_paths)
         for path in folder_paths:
-            yield Dataset.load_tift(path)
+            yield load_dataset(path)
             gc.collect()  # free memory
 
     def tift_dataset_generator_async(folder_paths: Iterable[str]):
@@ -162,7 +162,7 @@ def load_datasets(paths: list, *, asynchronous: bool) -> DatasetLoader:
 
             # load first dataset
             try:
-                current_dataset = executor.submit(Dataset.load_tift,
+                current_dataset = executor.submit(load_dataset,
                                                   next(folder_paths))
             except StopIteration:  # no datasets to load
                 return
@@ -172,7 +172,7 @@ def load_datasets(paths: list, *, asynchronous: bool) -> DatasetLoader:
                 current_dataset = current_dataset.result()
 
                 # start loading next dataset in background
-                next_dataset = executor.submit(Dataset.load_tift, path)
+                next_dataset = executor.submit(load_dataset, path)
 
                 # yield and continue with next dataset
                 yield current_dataset
