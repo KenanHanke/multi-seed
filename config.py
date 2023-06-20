@@ -49,6 +49,7 @@ COMPARISON_FOLDER = NULL
 [Cohort 1]
 /path/to/one/folder/          # the path to a folder containing images
 /path/to/multiple/*/fold?rs   # use glob patterns to match multiple folders
+                              #   (glob patterns are expanded alphabetically)
 
 [Cohort 2]
 /final/path/example
