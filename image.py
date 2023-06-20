@@ -1,3 +1,4 @@
+from typing import Iterator
 import numpy as np
 import logging
 from rbloom import Bloom
@@ -140,6 +141,41 @@ class Image:
             image.__class__(data=(image.data - minimum) / (maximum - minimum))
             for image in images
         ]
+
+    @classmethod
+    def normalize_all_lazy(cls, image_iter_func) -> Iterator["Image"]:
+        """
+        Similar to normalize_all(), but takes a function that returns an iterator
+        over Image objects instead of a list of Image objects. This allows the
+        images to be loaded lazily from disk instead of all at once, which may
+        be necessary depending on the number of images and the available memory.
+        A function returning an iterator is used in order to allow iterating
+        over the images multiple times.
+        
+        Args:
+            image_iter_func: A function that returns an iterator over Image objects.
+        
+        Returns:
+            iter[Image]: An iterator over normalized Image objects.
+        
+        Raises:
+            TypeError: If any of the images are not of floating-point type.
+        """
+        first = True
+        for image in image_iter_func():
+            if not np.issubdtype(image.dtype, np.floating):
+                raise TypeError(
+                    "All images must be floating-point to normalize")
+            if first:
+                minimum = np.min(image.data)
+                maximum = np.max(image.data)
+                first = False
+            else:
+                minimum = min(minimum, np.min(image.data))
+                maximum = max(maximum, np.max(image.data))
+        for image in image_iter_func():
+            yield image.__class__(data=(image.data - minimum) /
+                                  (maximum - minimum))
 
     @property
     def dimensions(self):
