@@ -2,3 +2,5 @@ numpy
 scikit-learn
 numba
 rbloom
+freesimplegui
+nibabel

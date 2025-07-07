@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import PySimpleGUI as sg
+import FreeSimpleGUI as sg
 import PIL.Image, PIL.ImageOps
 import io
 import sys
