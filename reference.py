@@ -41,6 +41,16 @@ class ReferenceBuilder:
 
         Note: Either dimensions or mask must be specified.
         """
+        # raise if not (dimensions specified XOR mask specified)
+        if dimensions is None and mask is None:
+            raise ValueError(
+                "Either dimensions or mask must be specified for ReferenceBuilder"
+            )
+        if dimensions is not None and mask is not None:
+            raise ValueError(
+                "Only one of dimensions or mask can be specified for ReferenceBuilder"
+            )
+        
         self.radius = float(radius)
         self.mask = mask
         if mask is None:
@@ -48,7 +58,7 @@ class ReferenceBuilder:
         else:
             self.dimensions = mask.dimensions
         self.points = None
-        self._loaded = False
+        self._LOADED = False
 
     def sample(self, n_points: int, rng=None):
         """
@@ -58,7 +68,7 @@ class ReferenceBuilder:
             n (int): The number of points to sample.
             rng (np.random.Generator, optional): A random number generator to use for sampling points.
         """
-        if self._loaded:
+        if self._LOADED:
             raise RuntimeError(
                 "Cannot sample new points from a loaded ReferenceBuilder instance"
             )
@@ -94,7 +104,7 @@ class ReferenceBuilder:
         dimensions = tuple(data["dimensions"])
         reference_builder = cls(radius=radius, dimensions=dimensions)
         reference_builder.points = points
-        reference_builder._loaded = True
+        reference_builder._LOADED = True
         return reference_builder
 
     def __len__(self):
@@ -162,7 +172,7 @@ class ReferenceBuilder:
             dataset: The dataset to extract the reference time series from.
 
         Returns:
-            Reference: A Reference object containing the reference time series.
+            Reference: A Reference object containing all reference time series.
         """
         logging.info("Building reference from %d points", len(self))
 
