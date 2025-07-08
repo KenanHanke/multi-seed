@@ -2,11 +2,11 @@ import glob
 import os
 from typing import Any
 
-# When changing variables and their defaults, only the default_config_str
+# When changing variables and their defaults, only the DEFAULT_CONFIG_STR
 # variable needs to be changed. The rest of the code will adapt automatically,
 # as the Config class has no concept of specific variables and their defaults.
 
-default_config_str = """
+DEFAULT_CONFIG_STR = """
 # This is a config file for fMRI data analysis. Characters following hashtags
 # on the same line are not interpreted. Empty lines and whitespace that is not
 # between interpreted characters are ignored. The word dataset refers to a set
@@ -18,7 +18,7 @@ default_config_str = """
 # here are the defaults that will be used when not specified explicitly.
 # Underscores, order of variables and whitespace around equals signs are
 # ignored. Previously set variables can be referenced in later variables,
-# e.g. COMPARISON_FOLDER = path/to/folder/reduced_{REDUCTION_ALGORITHM}.
+# e.g. RESULTS_FOLDER = path/to/folder/reduced_{REDUCTION_ALGORITHM}.
 
 
 # Enqueueing subsequent datasets asynchronously uses 2x the RAM but saves time
@@ -34,13 +34,17 @@ N_FEATURES = 20                # Number of dimensions kept during reduction
 N_SAMPLES_PER_DATASET = 5000   # Number of sample voxels per dataset to use
                                #    when calibrating reduction algorithm
 
-# The folder at the following path will be used for results of interindividual
-# comparison. Setting this to NULL will forgo this calculation entirely.
-COMPARISON_FOLDER = NULL
+# The folder at the following path will be used to store the resulting
+# networks for each dataset. It will be created if it does not exist.
+# It will also additionally contain the seed visualization, a mask image
+# and one average image per network. Setting this to NULL will mean that
+# results are only stored in the dataset folders given in the cohorts
+# using the internal file format.
+RESULTS_FOLDER = NULL
 
 # -----------------------------------------------------------------------------
 
-# The syntax for cohorts is as follows. Case and whitespace between characters
+# The syntax for cohorts is as follows: Case and whitespace between characters
 # are preserved, while empty lines and whitespace at the beginning and end of
 # lines continue to be ignored. Paths should be to folders containing images
 # of one scan in alphabetical order in their top level (one dataset). There
@@ -111,13 +115,9 @@ class Config:
         return params, cohorts
 
     @classmethod
-    def from_default(cls):
-        return cls(*cls._interpret_config_str(default_config_str))
-
-    @classmethod
     def from_str(cls, config_str):
         # Interpret default and custom config strings
-        params, _ = cls._interpret_config_str(default_config_str)
+        params, _ = cls._interpret_config_str(DEFAULT_CONFIG_STR)
         custom_params, cohorts = cls._interpret_config_str(config_str)
 
         # Override defaults with custom values

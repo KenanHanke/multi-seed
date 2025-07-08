@@ -12,17 +12,12 @@ import tift
 from feature_mapper import name_to_mapper_class
 import os
 
-PATH = "/home/khanke/data/HypoPark/hypoPark/00CONVERTED/CON/REDACTED/fmri301/MNINorm/new_PreProcAll"
-NUM_OF_PRINCIPAL_COMPONENTS = 8
-N = 500
-SIZE_OF_COMPARISON_POINT_SAMPLE = 2000
-
 
 def exec_config(config: Config, rng=None):
     parallel_io: bool = config.params["PARALLEL_IO"]
-    comparison_folder = config.params["COMPARISON_FOLDER"]
-    if comparison_folder:
-        os.makedirs(comparison_folder, exist_ok=True)
+    results_folder = config.params["RESULTS_FOLDER"]
+    if results_folder:
+        os.makedirs(results_folder, exist_ok=True)
 
     # prepare the dataset loaders for each cohort
     cohort_loaders = {
@@ -40,11 +35,11 @@ def exec_config(config: Config, rng=None):
                                          mask=mask)
     reference_builder.sample(config.params["N_SEEDS"], rng)
 
-    if comparison_folder:
+    if results_folder:
         # create visualization of reference builder
         visualization = reference_builder.visualized().normalized()
         visualization = visualization.scaled(256).converted(np.uint16)
-        visualization_folder = os.path.join(comparison_folder,
+        visualization_folder = os.path.join(results_folder,
                                             "seed_visualization")
         os.makedirs(visualization_folder, exist_ok=True)
         visualization_path = os.path.join(visualization_folder,
@@ -97,8 +92,9 @@ def exec_config(config: Config, rng=None):
             os.makedirs(norm_res_dir, exist_ok=True)
             image.save(os.path.join(norm_res_dir, f"{i}.npz"))
 
-    # also save the normalized results as ints scaled to [0, 65535]
-    # using the tift compatible format
+    # also save the normalized results as ints scaled to [0, 4095]
+    # using the tift compatible format; 4095 is the maximum value
+    # that can be stored in a 12 bit image, which is the standard
     for res_dir in res_dirs:
         tift_res_dir = os.path.join(res_dir, "tift_normalized_scaled")
         os.makedirs(tift_res_dir, exist_ok=True)
@@ -113,8 +109,8 @@ def exec_config(config: Config, rng=None):
                     f"{i}.npz",
                 ))
 
-            # scale to [0, 65535]
-            image = image.scaled(65535).converted(np.uint16)
+            # scale to [0, 4095]
+            image = image.scaled(4095).converted(np.uint16)
 
             if first:
                 # initialize the dataset
