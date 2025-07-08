@@ -5,10 +5,8 @@ from numba import njit
 @njit
 def corr_coef(time_series_1, time_series_2):
     """
-    Computes the absolute value of the correlation coefficient between
-    two time series. This is a measure of functional connectivity. The
-    absolute value is used because a strong negative correlation is
-    equally indicative of a connection as a strong positive correlation.
+    Computes the correlation coefficient between two time series.
+    This is a measure of functional connectivity.
 
     Does the calculation manually instead of with np.corrcoef in order
     to improve performance, as this function is called many times: The
@@ -16,7 +14,7 @@ def corr_coef(time_series_1, time_series_2):
     overhead, and by manually calculating the correlation coefficient,
     we get a 2x speedup.
     
-    This implementation was tested against integer overflows, which was
+    This implementation was tested against integer overflows, which were
     a possible concern because the time series are of type np.int16.
 
     Args:
@@ -24,7 +22,7 @@ def corr_coef(time_series_1, time_series_2):
         time_series_2 (np.array): The second time series (must have same length as first)
 
     Returns:
-        float: The absolute value of the correlation coefficient.
+        float: The correlation coefficient.
     """
     x = time_series_1
     y = time_series_2

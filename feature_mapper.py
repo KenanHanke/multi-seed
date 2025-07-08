@@ -18,8 +18,8 @@ def name_to_mapper_class(mapper_name) -> type['FeatureMapper']:
 class FeatureMapper(ABC):
     """
     An abstract base class that defines the interface for feature extraction
-    models that map the high-dimensional absolute value correlation coefficient
-    vector space to a lower-dimensional feature space.
+    models that map the high-dimensional correlation coefficient vector space
+    to a lower-dimensional feature space.
     """
 
     def __init__(self, n_features, reference_builder: ReferenceBuilder):
