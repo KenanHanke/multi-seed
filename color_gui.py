@@ -1,5 +1,17 @@
 #!/usr/bin/env python3
 
+"""
+
+Simple, quick and dirty image viewer for viewing 3D MRI images in the Analyze format,
+optionally overlaid on each other as RGB channels.
+
+Only supports int16 images.
+
+Pass it an image file via the command line (ending in ".img" or ".img.z").
+Alternatively, pass three images to view them as RGB channels overlaid on each other.
+
+"""
+
 import FreeSimpleGUI as sg
 import PIL.Image, PIL.ImageOps
 import io
@@ -9,23 +21,18 @@ from image import Image
 import gzip
 
 # Scale factor for the images (nearest neighbor interpolation)
-SCALE_FACTOR = 2
+SCALE_FACTOR = 1
+
 
 ######################################################################
-# I FORMALLY APOLOGIZE TO ANYONE WHO EVER HAS TO DECIPHER ANY CODE   #
-# PAST THIS POINT. THIS PROGRAM WAS MEANT AS A QUICK AND DIRTY PROOF #
-# OF CONCEPT IMAGE VIEWER. IT DOES WORK FULLY AS INTENDED, HOWEVER.  #
-######################################################################
 
-
-TIFT_DTYPE = np.int16
 
 def load_image(path):
     """
-    Load TIFT image from the specified file path.
+    Load Analyze image from the specified file path.
 
     Args:
-        path (str): Path to the TIFT image file.
+        path (str): Path to the Analyze image file.
 
     Returns:
         Image: Loaded Image object.
@@ -37,11 +44,17 @@ def load_image(path):
         with open(path, "rb") as f:
             raw_data = f.read()
 
-    raw_data = np.frombuffer(raw_data, dtype=TIFT_DTYPE)
+    raw_data = np.frombuffer(raw_data, dtype=np.int16)
 
     dimensions = (256, ) * 3
     image = Image(data=raw_data.reshape(dimensions))
     return image
+
+
+######################################################################
+#  THE REMAINDER OF THIS PROGRAM IS DIFFICULT TO UNDERSTAND; IT WAS  #
+#  WRITTEN AS A QUICK AND DIRTY PROOF OF CONCEPT.                    #
+######################################################################
 
 
 sg.theme('DarkAmber')
