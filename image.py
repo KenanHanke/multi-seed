@@ -290,18 +290,6 @@ class Mask(Image):
         new_mask |= other
         return new_mask
 
-    # The rest of this class consists of overloads of inherited methods
-    # that need to be disabled via raising NotImplementedError.
-
-    def normalized(self):
-        raise NotImplementedError("Mask cannot be normalized")
-
-    def scaled(self, factor):
-        raise NotImplementedError("Mask cannot be scaled")
-
-    def converted(self, dtype):
-        raise NotImplementedError("Mask cannot be converted")
-
     @classmethod
     def normalize_all(cls, images):
-        raise NotImplementedError("Masks cannot be normalized")
+        raise NotImplementedError("Masks cannot be group normalized")
