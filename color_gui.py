@@ -4,12 +4,12 @@ import FreeSimpleGUI as sg
 import PIL.Image, PIL.ImageOps
 import io
 import sys
-import tift
 import numpy as np
 from image import Image
+import gzip
 
 # Scale factor for the images (nearest neighbor interpolation)
-SCALE_FACTOR = 1
+SCALE_FACTOR = 2
 
 ######################################################################
 # I FORMALLY APOLOGIZE TO ANYONE WHO EVER HAS TO DECIPHER ANY CODE   #
@@ -17,10 +17,37 @@ SCALE_FACTOR = 1
 # OF CONCEPT IMAGE VIEWER. IT DOES WORK FULLY AS INTENDED, HOWEVER.  #
 ######################################################################
 
+
+TIFT_DTYPE = np.int16
+
+def load_image(path):
+    """
+    Load TIFT image from the specified file path.
+
+    Args:
+        path (str): Path to the TIFT image file.
+
+    Returns:
+        Image: Loaded Image object.
+    """
+    if path.endswith(".z"):
+        with gzip.open(path, "rb") as f:
+            raw_data = f.read()
+    else:
+        with open(path, "rb") as f:
+            raw_data = f.read()
+
+    raw_data = np.frombuffer(raw_data, dtype=TIFT_DTYPE)
+
+    dimensions = (256, ) * 3
+    image = Image(data=raw_data.reshape(dimensions))
+    return image
+
+
 sg.theme('DarkAmber')
 
 img_paths = sys.argv[1:4] if len(sys.argv) >= 4 else [sys.argv[1]] * 3
-imgs: list[Image] = [tift.load_image(f) for f in img_paths]
+imgs: list[Image] = [load_image(f) for f in img_paths]
 imgs: list[np.ndarray] = [
     img.converted(np.float32).normalized().scaled(255).converted(np.uint8).data
     for img in imgs
