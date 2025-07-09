@@ -4,3 +4,4 @@ numba
 rbloom
 freesimplegui
 nibabel
+pillow
