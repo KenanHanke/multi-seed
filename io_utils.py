@@ -8,6 +8,7 @@ import gzip
 import logging
 import os
 import nibabel as nib
+import re
 
 
 def load_image(path):
@@ -110,6 +111,20 @@ def load_dataset(folder_path):
         for filename in os.listdir(folder_path)
         if filename.lower().endswith(EXTENSIONS)
     )
+    
+    # Automatically recognize if we're in a TIFT generated fMRI dataset folder
+    # which will contain over 200 files matching the pattern r"^f\d{10}\."
+    # in which case we want to ignore any files that do not match this pattern.
+    num_match_candidates = sum(
+        1 for filename in image_paths
+        if re.match(r"^f\d{10}\.", os.path.basename(filename))
+    )
+    if num_match_candidates > 200:
+        logging.info("Detected TIFT fMRI dataset folder, filtering files.")
+        image_paths = [
+            path for path in image_paths
+            if re.match(r"^f\d{10}\.", os.path.basename(path))
+        ]
 
     n_images = len(image_paths)
     
