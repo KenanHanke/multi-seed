@@ -177,6 +177,38 @@ class Image:
             yield image.__class__(data=(image.data - minimum) /
                                   (maximum - minimum))
 
+    def __add__(self, other: "Image"):
+        """
+        Add another Image to this one. The result is a new Image object
+        containing the sum of the data.
+
+        Args:
+            other (Image): The other Image object to add.
+
+        Returns:
+            Image: A new Image object with the summed data.
+        """
+        if self.dtype != other.dtype:
+            raise ValueError("Data types must match for addition")
+        new_data = self.data + other.data
+        return self.__class__(data=new_data)
+
+    def __iadd__(self, other: "Image"):
+        """
+        Perform an in-place addition with another Image. The data of this
+        image is modified to be the sum of its own data and the other image's data.
+
+        Args:
+            other (Image): The other Image object to add.
+
+        Returns:
+            Image: The modified Image object after the addition.
+        """
+        if self.dtype != other.dtype:
+            raise ValueError("Data types must match for in-place addition")
+        self.data += other.data
+        return self
+
     @property
     def dimensions(self):
         """
