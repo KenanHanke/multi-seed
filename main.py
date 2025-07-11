@@ -38,7 +38,7 @@ def exec_config(config: Config, rng=None):
     if results_folder:
         # save the mask to the results folder
         mask_path = os.path.join(results_folder, "mask.img")
-        reformatted_mask = mask.converted(np.int16).scaled(255)
+        reformatted_mask = mask.converted(np.float32).scaled(255).converted(np.int16)
         io_utils.save_image(reformatted_mask, mask_path)
 
     # prepare reference builder
@@ -48,7 +48,7 @@ def exec_config(config: Config, rng=None):
 
     if results_folder:
         # create visualization of reference builder
-        visualization = reference_builder.visualized().normalized().scaled(1023).converted(np.int16)
+        visualization = reference_builder.visualized().normalized().scaled(4095).converted(np.int16)
         visualization_path = os.path.join(results_folder,
                                           "seed_visualization.img")
         io_utils.save_image(visualization, visualization_path)
@@ -63,29 +63,29 @@ def exec_config(config: Config, rng=None):
                rng=rng)
 
     # transform the datasets
-    cohort_result_dirs = {}
+    cohort_internal_result_dirs = {}
     for cohort, loader in cohort_loaders.items():
-        cohort_result_dirs[cohort] = []
+        cohort_internal_result_dirs[cohort] = []
         for dataset, path in zip(loader, loader.paths):
             result = mapper.transform(dataset)
 
-            res_dir = os.path.join(path, REDUCTION_ALGORITHM)
-            raw_res_dir = os.path.join(res_dir, "raw_float_result")
+            internal_result_dir = os.path.join(path, REDUCTION_ALGORITHM)
+            raw_res_dir = os.path.join(internal_result_dir, "raw_float_result")
             os.makedirs(raw_res_dir, exist_ok=True)
 
             for i, image in enumerate(result):
                 image.save(os.path.join(raw_res_dir, f"{i}.npz"))
 
-            cohort_result_dirs[cohort].append(res_dir)
+            cohort_internal_result_dirs[cohort].append(internal_result_dir)
 
     # flatten the list of result directories
-    res_dirs = sum(cohort_result_dirs.values(), [])
+    internal_result_dirs = sum(cohort_internal_result_dirs.values(), [])
 
     # normalize the results to floats in [0, 1] and save them
     for i in range(N_FEATURES):
 
         def image_iter_func():
-            for res_dir in res_dirs:
+            for res_dir in internal_result_dirs:
                 yield Image.load(
                     os.path.join(
                         res_dir,
@@ -94,10 +94,31 @@ def exec_config(config: Config, rng=None):
                     ))
 
         normalized_images = Image.normalize_all_lazy(image_iter_func)
-        for res_dir, image in zip(res_dirs, normalized_images):
-            norm_res_dir = os.path.join(res_dir, "normalized_float_result")
+        for internal_result_dir, image in zip(internal_result_dirs, normalized_images):
+            norm_res_dir = os.path.join(internal_result_dir, "normalized_float_result")
             os.makedirs(norm_res_dir, exist_ok=True)
             image.save(os.path.join(norm_res_dir, f"{i}.npz"))
+            
+    # generate the results folder contents with networks and with
+    # an average background image visualization per network
+    if results_folder:
+        for network in range(N_FEATURES):
+            image_sum = None
+            for cohort, internal_result_dirs in cohort_internal_result_dirs.items():
+                for i, internal_result_dir in enumerate(internal_result_dirs):
+                    norm_res_dir = os.path.join(internal_result_dir, "normalized_float_result")
+                    image_path = os.path.join(norm_res_dir, f"{network}.npz")
+                    image = Image.load(image_path)
+                    if image_sum is None:
+                        image_sum = image.copy()
+                    else:
+                        image_sum += image
+                    external_result_dir = os.path.join(results_folder, f"network_{network+1}", cohort)
+                    os.makedirs(external_result_dir, exist_ok=True)
+                    io_utils.save_image(image, os.path.join(external_result_dir, f"result_for_dataset_{i+1:06d}.img"))
+            average_image = image_sum.normalized().scaled(4095).converted(np.int16)
+            average_image_path = os.path.join(results_folder, f"network_{network+1}", "average_visualization.img")
+            io_utils.save_image(average_image, average_image_path)
 
 
 def main():
