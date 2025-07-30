@@ -11,6 +11,8 @@ def name_to_mapper_class(mapper_name) -> type['FeatureMapper']:
     match mapper_name:
         case "PCA":
             return PCAMapper
+        case "ICA":
+            return ICAMapper
         case _:
             raise ValueError("Inappropriate mapper algorithm name")
 
