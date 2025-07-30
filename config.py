@@ -42,6 +42,11 @@ N_SAMPLES_PER_DATASET = 5000   # Number of sample voxels per dataset to use
 # using the internal file format.
 RESULTS_FOLDER = NULL
 
+# Setting this to TRUE will cause a Python script to be written to the results
+# folder that modifies the file format to be compatible with the TIFT software
+# package and additionally generates TIFT project files
+TIFT_COMPATIBILITY_MODE = FALSE
+
 # -----------------------------------------------------------------------------
 
 # The syntax for cohorts is as follows: Case and whitespace between characters

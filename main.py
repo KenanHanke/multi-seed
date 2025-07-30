@@ -22,6 +22,7 @@ numba_logger.setLevel(logging.WARNING)
 def exec_config(config: Config, rng=None):
     parallel_io: bool = config.params["PARALLEL_IO"]
     results_folder = config.params["RESULTS_FOLDER"]
+    tift_compatibility_mode = config.params["TIFT_COMPATIBILITY_MODE"]
     if results_folder:
         os.makedirs(results_folder, exist_ok=True)
 
@@ -37,7 +38,7 @@ def exec_config(config: Config, rng=None):
     mask = all_dataset_loader.extract_mask()
     if results_folder:
         # save the mask to the results folder
-        mask_path = os.path.join(results_folder, "mask.img")
+        mask_path = os.path.join(results_folder, "mask.img.gz")
         reformatted_mask = mask.converted(np.float32).scaled(255).converted(np.int16)
         io_utils.save_image(reformatted_mask, mask_path)
 
@@ -50,7 +51,7 @@ def exec_config(config: Config, rng=None):
         # create visualization of reference builder
         visualization = reference_builder.visualized().normalized().scaled(4095).converted(np.int16)
         visualization_path = os.path.join(results_folder,
-                                          "seed_visualization.img")
+                                          "seed_visualization.img.gz")
         io_utils.save_image(visualization, visualization_path)
 
     # initialize and fit mapper
@@ -103,6 +104,7 @@ def exec_config(config: Config, rng=None):
     # an average background image visualization per network
     if results_folder:
         for network in range(N_FEATURES):
+            network_folder_name = f"network_{network+1:03d}"
             image_sum = None
             for cohort, internal_result_dirs in cohort_internal_result_dirs.items():
                 for i, internal_result_dir in enumerate(internal_result_dirs):
@@ -113,12 +115,20 @@ def exec_config(config: Config, rng=None):
                         image_sum = image.copy()
                     else:
                         image_sum += image
-                    external_result_dir = os.path.join(results_folder, f"network_{network+1}", cohort)
+                    external_result_dir = os.path.join(results_folder, network_folder_name, cohort)
                     os.makedirs(external_result_dir, exist_ok=True)
-                    io_utils.save_image(image, os.path.join(external_result_dir, f"result_for_dataset_{i+1:06d}.img"))
+                    io_utils.save_image(image, os.path.join(external_result_dir, f"result_for_dataset_{i+1:06d}.img.gz"))
             average_image = image_sum.normalized().scaled(4095).converted(np.int16)
-            average_image_path = os.path.join(results_folder, f"network_{network+1}", "average_visualization.img")
+            average_image_path = os.path.join(results_folder, network_folder_name, "average_visualization.img.gz")
             io_utils.save_image(average_image, average_image_path)
+        if tift_compatibility_mode:
+            # Write the TIFT compatibility script to the results folder
+            origin = os.path.join(os.path.dirname(__file__), "tift_compatibility_script.py")
+            destination = os.path.join(results_folder, "tift_compatibility_script.py")
+            with open(origin, "r") as f:
+                contents = f.read()
+            with open(destination, "w") as f:
+                f.write(contents)
 
 
 def main():
