@@ -137,3 +137,15 @@ class PCAMapper(FeatureMapper):
     @property
     def reduction_impl(self):
         return sklearn.decomposition.PCA
+
+class ICAMapper(FeatureMapper):
+    """
+    A mapping that performs ICA on the dataset. No prior standardization
+    is performed because all dimensions are correlation coefficients.
+
+    Uses sklearn's FastICA implementation.
+    """
+
+    @property
+    def reduction_impl(self):
+        return sklearn.decomposition.FastICA
