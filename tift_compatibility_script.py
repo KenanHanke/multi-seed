@@ -18,8 +18,8 @@ for file in script_dir.rglob("*.img.gz"):
 # Extract all .hdr.gz files destructively
 for file in script_dir.rglob("*.hdr.gz"):
     new_name = file.with_suffix('') # Remove the .gz suffix
-    with gzip.open(file, 'rb') as f_in:
-        with open(new_name, 'wb') as f_out:
+    with gzip.open(file.as_posix(), 'rb') as f_in:
+        with open(new_name.as_posix(), 'wb') as f_out:
             f_out.write(f_in.read())
     file.unlink()  # Remove the original .hdr.gz file
 
