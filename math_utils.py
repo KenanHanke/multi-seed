@@ -1,5 +1,6 @@
 import numpy as np
 from numba import njit
+import sklearn.decomposition
 
 
 @njit
@@ -102,3 +103,20 @@ class PCA:
         # because the vectors are horizontal and we're therefore
         # essentially dealing with transposed matrices (AB=C <=> BtAt=Ct)
         return np.dot(X, self.components)
+
+
+class KernelPCA_RBF(sklearn.decomposition.KernelPCA):
+    """
+    A Kernel PCA implementation with RBF kernel that partially implements
+    the interface of sklearn.decomposition.KernelPCA.
+    """
+
+    def __init__(self, n_components, kernel='rbf'):
+        """
+        Initialize the Kernel PCA instance with the specified number of components.
+
+        Args:
+            n_components (int): Number of components to be retained.
+            kernel (str): The kernel to use for the transformation.
+        """
+        super().__init__(n_components=n_components, kernel=kernel)
