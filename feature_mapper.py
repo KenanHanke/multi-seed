@@ -5,7 +5,6 @@ import sklearn.decomposition
 from dataset import Dataset
 from reference import ReferenceBuilder
 import logging
-from math_utils import KernelPCA_RBF
 
 
 def name_to_mapper_class(mapper_name) -> type['FeatureMapper']:
@@ -14,8 +13,6 @@ def name_to_mapper_class(mapper_name) -> type['FeatureMapper']:
             return PCAMapper
         case "ICA":
             return ICAMapper
-        case "KernelPCA":
-            return KernelPCAMapper
         case _:
             raise ValueError("Inappropriate mapper algorithm name")
 
@@ -155,14 +152,3 @@ class ICAMapper(FeatureMapper):
     def reduction_impl(self):
         return sklearn.decomposition.FastICA
 
-class KernelPCAMapper(FeatureMapper):
-    """
-    A mapping that performs Kernel PCA on the dataset. No prior standardization
-    is performed because all dimensions are correlation coefficients. RBF kernel is used.
-    
-    Uses sklearn's KernelPCA implementation.
-    """
-
-    @property
-    def reduction_impl(self):
-        return KernelPCA_RBF
