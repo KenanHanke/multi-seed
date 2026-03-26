@@ -113,14 +113,14 @@ def load_dataset(folder_path):
     )
     
     # Automatically recognize if we're in a TIFT generated fMRI dataset folder
-    # which will contain over 100 files matching the pattern r"^f\d{10}\."
+    # which will contain over 80 files matching the pattern r"^f\d{10}\."
     # in which case we want to ignore any files that do not match this pattern.
     match_candidates = [
         path for path in image_paths
         if re.match(r"^f\d{10}\.", os.path.basename(path))
     ]
-    if len(match_candidates) > 100:
-        logging.info("Detected TIFT fMRI dataset folder, filtering files.")
+    if len(match_candidates) > 80:
+        logging.debug("Detected TIFT fMRI dataset folder, filtering files.")
         image_paths = match_candidates
 
     n_images = len(image_paths)
