@@ -138,10 +138,7 @@ def main():
     # ensure reproducibility of random numbers
     rng = np.random.default_rng(seed=42)
 
-    with open("pdstudy.config", "r") as f:
-        config_str = f.read()
-
-    config = Config.from_str(config_str)
+    config = Config.from_file("pdstudy.config")
 
     exec_config(config, rng)
 

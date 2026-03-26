@@ -43,9 +43,9 @@ N_SAMPLES_PER_DATASET = 5000   # Number of sample voxels per dataset to use
 RESULTS_FOLDER = NULL
 
 # Setting this to TRUE will cause a Python script to be written to the results
-# folder that modifies the file format to be compatible with the TIFT software
-# package and additionally generates TIFT project files
-TIFT_COMPATIBILITY_MODE = FALSE
+# folder which can modify the file format to be compatible with the TIFT
+# software package and generate TIFT project files
+TIFT_COMPATIBILITY_MODE = TRUE
 
 # -----------------------------------------------------------------------------
 
@@ -129,6 +129,12 @@ class Config:
         params.update(custom_params)
 
         return cls(params, cohorts)
+
+    @classmethod
+    def from_file(cls, path):
+        with open(path, 'r') as f:
+            config_str = f.read()
+        return cls.from_str(config_str)
 
     def __str__(self):
         a = []
