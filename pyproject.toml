@@ -38,3 +38,7 @@ license-files = ["COPYING*"]
 [project.scripts]
 multiseed = "multiseed.cli:main"
 multiseed-viewer = "multiseed.viewer:main"
+
+
+[project.optional-dependencies]
+docs = ["pdoc>=16"]
