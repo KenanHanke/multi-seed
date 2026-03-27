@@ -31,7 +31,7 @@ license-files = ["COPYING*"]
 
 
 [project.urls]
-"Homepage" = "https://github.com/KenanHanke/multiseed"
+"Homepage" = "https://pypi.org/project/multiseed/"
 "Bug Tracker" = "https://github.com/KenanHanke/multiseed/issues"
 "Documentation" = "https://kenanhanke.github.io/multiseed"
 "Source Code" = "https://github.com/KenanHanke/multiseed"

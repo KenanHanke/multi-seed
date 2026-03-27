@@ -1,6 +1,6 @@
 # multiseed
 
-`multiseed` runs unsupervised group-level resting-state fMRI network extraction using a many-seed-based approach combined with dimensionality reduction.
+`multiseed` runs unsupervised group-level resting-state fMRI network extraction using a many-seed-based approach combined with dimensionality reduction. It's available on [PyPI](https://pypi.org/project/multiseed/).
 
 In practice, it:
 
@@ -15,6 +15,12 @@ Because the mask, seed set, and reduction model are built jointly across all coh
 
 ## Quick start
 
+Install using pip:
+
+```bash
+pip install multiseed
+```
+
 Generate a template config (which contains several explanatory comments):
 
 ```bash
@@ -27,7 +33,7 @@ Edit `analysis.cfg`, then run the analysis:
 python -m multiseed analysis.cfg
 ```
 
-If you installed a console entry point, the same command is:
+If you installed a console entry point (default on most systems), the same command is:
 
 ```bash
 multiseed analysis.cfg
