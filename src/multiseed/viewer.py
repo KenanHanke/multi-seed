@@ -4,13 +4,16 @@
 
 """
 
-Simple, quick and dirty image viewer for viewing 256x256x256 3D MRI images in the
+Simple image viewer for viewing 256x256x256 3D MRI images in the
 Analyze format, optionally overlaid on each other as RGB channels.
 
 Only supports int16 and float32 images.
 
-Pass it an image file via the command line (ending in ".img" or ".img.z").
+Pass it one image file via the command line (ending in ".img" or ".img.z").
 Alternatively, pass three images to view them as RGB channels overlaid on each other.
+
+If you installed a console entry point, you can also run this viewer with the command
+`multiseed-viewer` instead of `python -m multiseed.viewer`.
 
 """
 

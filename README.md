@@ -78,6 +78,10 @@ results/
       result_for_dataset_000001.img.gz
 ```
 
+## Programmatic use
+
+The `multiseed` library exposes an extensive API encompassing almost all parts of its algorithm. See the [documentation](https://kenanhanke.github.io/multiseed) for more details.
+
 ## Notes
 
 - All datasets are assumed to have matching spatial dimensions.

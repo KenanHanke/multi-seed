@@ -1,9 +1,10 @@
 # src/multiseed/__init__.py
 
 """
-multiseed
+# multiseed
 
-.. include:: README.md
+The `multiseed` library exposes an extensive API encompassing almost all parts of its algorithm.
+See the submodule documentation for details.
 """
 
 import logging
