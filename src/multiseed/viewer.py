@@ -24,17 +24,6 @@ import gzip
 import tkinter as tk
 from .image import Image
 
-# Scale factor for the images (nearest neighbor interpolation)
-SCALE_FACTOR = 1  # Default value; will be updated based on screen height if possible
-try:
-    root = tk.Tk()
-    SCALE_FACTOR = root.winfo_screenheight() // 700
-finally:
-    try:
-        root.destroy()
-    except Exception:
-        pass
-
 
 ######################################################################
 
@@ -134,6 +123,20 @@ def convert_to_bytes(image):
 
 
 def main():
+    
+    # Scale factor for the images (nearest neighbor interpolation)
+    # Located within main() to prevent issues with importing tkinter in environments where it may not be available
+    global SCALE_FACTOR
+    SCALE_FACTOR = 1  # Default value; will be updated based on screen height if possible
+    try:
+        root = tk.Tk()
+        SCALE_FACTOR = root.winfo_screenheight() // 700
+    finally:
+        try:
+            root.destroy()
+        except Exception:
+            pass
+    
     sg.theme('DarkAmber')
 
     img_paths = sys.argv[1:4] if len(sys.argv) >= 4 else [sys.argv[1]] * 3
