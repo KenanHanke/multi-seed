@@ -8,7 +8,7 @@ In practice, it:
 2. builds one combined brain mask from all non-zero voxels,
 3. samples random seed locations inside that mask,
 4. turns each voxel into a vector of seed-correlation values,
-5. reduces those vectors with **PCA** or **ICA**, and
+5. reduces those vectors with PCA or ICA, and
 6. writes one 3D map per extracted network/component for every dataset.
 
 Because the mask, seed set, and reduction model are built jointly across all cohorts, the resulting feature maps are directly comparable across subjects/datasets.
@@ -35,6 +35,10 @@ multiseed analysis.cfg
 
 The CLI uses a fixed random seed, so repeated runs with the same inputs/config are reproducible.
 
+## Programmatic use
+
+The `multiseed` library exposes an extensive API encompassing almost all parts of its algorithm. See the [documentation](https://kenanhanke.github.io/multiseed) for more details.
+
 ## Simple config example
 
 ```ini
@@ -51,12 +55,12 @@ RESULTS_FOLDER = results
 /data/patients/*
 ```
 
-Each **dataset** is one folder containing the 3D volumes from a single scan. Supported image formats are:
+Each dataset is one folder containing the 3D volumes from a single scan. Supported image formats are:
 
 - `.img`, `.img.gz`, `.img.z`
 - `.nii`, `.nii.gz`
 
-A **cohort** (e.g. `Controls` or `Patients` in this example) is a named list of dataset folders.
+A cohort (e.g. `Controls` or `Patients` in this example) is a named list of dataset folders.
 
 See the template config for more parameters and information.
 
@@ -77,10 +81,6 @@ results/
       result_for_dataset_000001.hdr.gz
       result_for_dataset_000001.img.gz
 ```
-
-## Programmatic use
-
-The `multiseed` library exposes an extensive API encompassing almost all parts of its algorithm. See the [documentation](https://kenanhanke.github.io/multiseed) for more details.
 
 ## Notes
 
