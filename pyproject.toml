@@ -7,13 +7,13 @@ build-backend = "hatchling.build"
 name = "multiseed"
 version = "0.1.0"
 dependencies = [
-    "numpy>=2.4.1",
-    "scikit-learn>=1.8.0",
-    "numba>=0.64.0",
-    "rbloom>=1.5.0",
-    "freesimplegui>=5.2.0.post1",
-    "nibabel>=5.4.0",
-    "pillow>=12.1.0",
+    "numpy>=2.0.0",
+    "scikit-learn>=1.5.0",
+    "numba>=0.60.0",
+    "rbloom>=1.5.1",
+    "freesimplegui>=5.1.0",
+    "nibabel>=5.2.1",
+    "pillow>=10.4.0",
 ]
 authors = [{ name = "Kenan L. Hanke" }]
 description = "A software package for group-level rs-fMRI analysis."
