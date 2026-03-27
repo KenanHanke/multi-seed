@@ -1,0 +1,40 @@
+[build-system]
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
+
+
+[project]
+name = "multiseed"
+version = "0.1.0"
+dependencies = [
+    "numpy>=2.4.1",
+    "scikit-learn>=1.8.0",
+    "numba>=0.64.0",
+    "rbloom>=1.5.0",
+    "freesimplegui>=5.2.0.post1",
+    "nibabel>=5.4.0",
+    "pillow>=12.1.0",
+]
+authors = [{ name = "Kenan L. Hanke" }]
+description = "A software package for group-level rs-fMRI analysis."
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+license = "LGPL-3.0-only"
+license-files = ["COPYING*"]
+
+
+[project.urls]
+"Homepage" = "https://github.com/KenanHanke/multiseed"
+"Bug Tracker" = "https://github.com/KenanHanke/multiseed/issues"
+
+
+[project.scripts]
+multiseed = "multiseed.cli:main"
+multiseed-viewer = "multiseed.viewer:main"

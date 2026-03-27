@@ -1,10 +1,12 @@
+# multiseed/mapper.py
+
 from abc import ABC, abstractmethod
 from typing import Iterable
 import numpy as np
 import sklearn.decomposition
-from dataset import Dataset
-from reference import ReferenceBuilder
 import logging
+from .dataset import Dataset
+from .reference import ReferenceBuilder
 
 
 def name_to_mapper_class(mapper_name) -> type['FeatureMapper']:

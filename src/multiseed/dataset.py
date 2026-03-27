@@ -1,7 +1,9 @@
+# multiseed/dataset.py
+
 import numpy as np
-from image import Image, Mask
 import logging
 from collections.abc import Iterable
+from .image import Image, Mask
 
 
 class Dataset:

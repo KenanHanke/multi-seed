@@ -1,12 +1,23 @@
+# multiseed/config.py
+
 import glob
 import os
 from typing import Any
+import functools
+import operator
+import numpy as np
+from .image import Image
+from .reference import ReferenceBuilder
+from .ioutils import save_image, load_datasets_lazy
+from .mapper import name_to_mapper_class
+from .tift import TIFT_COMPATIBILITY_SCRIPT_CONTENTS
+
 
 # When changing variables and their defaults, only the DEFAULT_CONFIG_STR
 # variable needs to be changed. The rest of the code will adapt automatically,
 # as the Config class has no concept of specific variables and their defaults.
 
-DEFAULT_CONFIG_STR = """
+DEFAULT_CONFIG_STR = r"""
 # This is a config file for fMRI data analysis. Characters following hashtags
 # on the same line are not interpreted. Empty lines and whitespace that is not
 # between interpreted characters are ignored. The word dataset refers to a set
@@ -119,6 +130,11 @@ class Config:
 
         return params, cohorts
 
+    @staticmethod
+    def write_default_config(path):
+        with open(path, 'w') as f:
+            f.write(DEFAULT_CONFIG_STR)
+
     @classmethod
     def from_str(cls, config_str):
         # Interpret default and custom config strings
@@ -149,3 +165,111 @@ class Config:
             for path in v:
                 a.append(path)
         return "\n".join(a)
+
+    def run(self, rng=None):
+        parallel_io: bool = self.params["PARALLEL_IO"]
+        results_folder = self.params["RESULTS_FOLDER"]
+        tift_compatibility_mode = self.params["TIFT_COMPATIBILITY_MODE"]
+        if results_folder:
+            os.makedirs(results_folder, exist_ok=True)
+
+        # prepare the dataset loaders for each cohort
+        cohort_loaders = {
+            cohort: load_datasets_lazy(paths, asynchronous=parallel_io)
+            for cohort, paths in self.cohorts.items()
+        }
+
+        # get mask
+        all_dataset_loader = functools.reduce(operator.add,
+                                            cohort_loaders.values())
+        mask = all_dataset_loader.extract_mask()
+        if results_folder:
+            # save the mask to the results folder
+            mask_path = os.path.join(results_folder, "mask.img.gz")
+            reformatted_mask = mask.converted(np.float32).scaled(255).converted(np.int16)
+            save_image(reformatted_mask, mask_path)
+
+        # prepare reference builder
+        reference_builder = ReferenceBuilder(radius=self.params["SEED_RADIUS"],
+                                            mask=mask)
+        reference_builder.sample(self.params["N_SEEDS"], rng)
+
+        if results_folder:
+            # create visualization of reference builder
+            visualization = reference_builder.visualized().normalized().scaled(4095).converted(np.int16)
+            visualization_path = os.path.join(results_folder,
+                                            "seed_visualization.img.gz")
+            save_image(visualization, visualization_path)
+
+        # initialize and fit mapper
+        N_FEATURES = self.params["N_FEATURES"]
+        REDUCTION_ALGORITHM = self.params["REDUCTION_ALGORITHM"]
+        Mapper = name_to_mapper_class(REDUCTION_ALGORITHM)
+        mapper = Mapper(N_FEATURES, reference_builder)
+        mapper.fit(all_dataset_loader,
+                samples_per_dataset=self.params["N_SAMPLES_PER_DATASET"],
+                rng=rng)
+
+        # transform the datasets
+        cohort_internal_result_dirs = {}
+        for cohort, loader in cohort_loaders.items():
+            cohort_internal_result_dirs[cohort] = []
+            for dataset, path in zip(loader, loader.paths):
+                result = mapper.transform(dataset)
+
+                internal_result_dir = os.path.join(path, REDUCTION_ALGORITHM)
+                raw_res_dir = os.path.join(internal_result_dir, "raw_float_result")
+                os.makedirs(raw_res_dir, exist_ok=True)
+
+                for i, image in enumerate(result):
+                    image.save(os.path.join(raw_res_dir, f"{i}.npz"))
+
+                cohort_internal_result_dirs[cohort].append(internal_result_dir)
+
+        # flatten the list of result directories
+        internal_result_dirs = sum(cohort_internal_result_dirs.values(), [])
+
+        # normalize the results to floats in [0, 1] and save them
+        for i in range(N_FEATURES):
+
+            def image_iter_func():
+                for res_dir in internal_result_dirs:
+                    yield Image.load(
+                        os.path.join(
+                            res_dir,
+                            "raw_float_result",
+                            f"{i}.npz",
+                        ))
+
+            normalized_images = Image.normalize_all_lazy(image_iter_func)
+            for internal_result_dir, image in zip(internal_result_dirs, normalized_images):
+                norm_res_dir = os.path.join(internal_result_dir, "normalized_float_result")
+                os.makedirs(norm_res_dir, exist_ok=True)
+                image.save(os.path.join(norm_res_dir, f"{i}.npz"))
+                
+        # generate the results folder contents with networks and with
+        # an average background image visualization per network
+        if results_folder:
+            for network in range(N_FEATURES):
+                network_folder_name = f"network_{network+1:03d}"
+                image_sum = None
+                for cohort, internal_result_dirs in cohort_internal_result_dirs.items():
+                    for i, internal_result_dir in enumerate(internal_result_dirs):
+                        norm_res_dir = os.path.join(internal_result_dir, "normalized_float_result")
+                        image_path = os.path.join(norm_res_dir, f"{network}.npz")
+                        image = Image.load(image_path)
+                        if image_sum is None:
+                            image_sum = image.copy()
+                        else:
+                            image_sum += image
+                        external_result_dir = os.path.join(results_folder, network_folder_name, cohort)
+                        os.makedirs(external_result_dir, exist_ok=True)
+                        save_image(image, os.path.join(external_result_dir, f"result_for_dataset_{i+1:06d}.img.gz"))
+                average_image = image_sum.normalized().scaled(4095).converted(np.int16)
+                average_image_path = os.path.join(results_folder, network_folder_name, "average_visualization.img.gz")
+                save_image(average_image, average_image_path)
+            if tift_compatibility_mode:
+                # Write the TIFT compatibility script to the results folder
+                destination = os.path.join(results_folder, "tift_compatibility_script.py")
+                with open(destination, "w") as f:
+                    f.write(TIFT_COMPATIBILITY_SCRIPT_CONTENTS)

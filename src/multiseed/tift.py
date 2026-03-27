@@ -1,3 +1,6 @@
+# multiseed/tift.py
+
+TIFT_COMPATIBILITY_SCRIPT_CONTENTS = r"""
 #!/usr/bin/env python3
 
 from pathlib import Path
@@ -49,3 +52,4 @@ for network_folder in script_dir.glob("network_*"):
     ]
     
     prj_file.write_text("\n".join(prj_content))
+""".strip()

@@ -1,14 +1,16 @@
+# multiseed/ioutils.py
+
 from concurrent.futures import ThreadPoolExecutor
 import gc
 from typing import Iterable
 import numpy as np
-from image import Image
-from dataset import Dataset, DatasetLoader
 import gzip
 import logging
 import os
 import nibabel as nib
 import re
+from .image import Image
+from .dataset import Dataset, DatasetLoader
 
 
 def load_image(path):

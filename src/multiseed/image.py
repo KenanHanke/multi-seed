@@ -1,3 +1,5 @@
+# multiseed/image.py
+
 from typing import Iterator
 import numpy as np
 import logging

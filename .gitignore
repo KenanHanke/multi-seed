@@ -1,7 +1,11 @@
-deploy.py
 __pycache__/
 .vscode/
-header_templates/
 
-pdstudy.config
-venv
+venv/
+
+dist/
+build/
+*.egg-info/
+eggs/
+*.egg
+wheels/

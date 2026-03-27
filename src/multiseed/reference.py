@@ -1,9 +1,11 @@
+# multiseed/reference.py
+
 import numpy as np
 from numba import njit, prange
 import logging
-from image import Image, Mask
 from os import sched_getaffinity
-from math_utils import corr_coef
+from .image import Image, Mask
+from .mathutils import corr_coef
 
 
 class ReferenceBuilder:
