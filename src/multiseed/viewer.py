@@ -28,16 +28,7 @@ from .image import Image
 ######################################################################
 
 
-def load_image(path):
-    """
-    Load an Analyze image from the specified file path.
-
-    Args:
-        path (str): Path to the Analyze image file.
-
-    Returns:
-        Image: Loaded Image object.
-    """
+def _load_image(path):
     # If the path ends with .hdr, we need to find the corresponding .img or .img.z file
     if path.endswith(".hdr"):
         # find out if the corresponding .img file is gzipped or not
@@ -77,7 +68,7 @@ def load_image(path):
 ######################################################################
 
 
-def get_mri_images(imgs, axial_coordinate,
+def _get_mri_images(imgs, axial_coordinate,
                    coronal_coordinate,
                    sagittal_coordinate,
                    show_crosshairs=True):
@@ -116,7 +107,7 @@ def get_mri_images(imgs, axial_coordinate,
     return axial_image, coronal_image, sagittal_image
 
 
-def convert_to_bytes(image):
+def _convert_to_bytes(image):
     bio = io.BytesIO()
     image.save(bio, format="PNG")
     return bio.getvalue()
@@ -140,7 +131,7 @@ def main():
     sg.theme('DarkAmber')
 
     img_paths = sys.argv[1:4] if len(sys.argv) >= 4 else [sys.argv[1]] * 3
-    imgs: list[Image] = [load_image(f) for f in img_paths]
+    imgs: list[Image] = [_load_image(f) for f in img_paths]
     imgs: list[np.ndarray] = [
         img.converted(np.float32).normalized().scaled(255).converted(np.uint8).data
         for img in imgs
@@ -188,12 +179,12 @@ def main():
 
     window = sg.Window("Image Viewer", layout, finalize=True)
 
-    axial_image, coronal_image, sagittal_image = get_mri_images(
+    axial_image, coronal_image, sagittal_image = _get_mri_images(
         imgs, 128, 128, 128, True)
 
-    window["axial_image"].update(data=convert_to_bytes(axial_image))
-    window["coronal_image"].update(data=convert_to_bytes(coronal_image))
-    window["sagittal_image"].update(data=convert_to_bytes(sagittal_image))
+    window["axial_image"].update(data=_convert_to_bytes(axial_image))
+    window["coronal_image"].update(data=_convert_to_bytes(coronal_image))
+    window["sagittal_image"].update(data=_convert_to_bytes(sagittal_image))
 
     while True:
         event, values = window.read()
@@ -208,13 +199,13 @@ def main():
             sagittal_coordinate = int(values["sagittal_slider"])
             show_crosshairs = values["show_crosshairs"]
 
-            axial_image, coronal_image, sagittal_image = get_mri_images(
+            axial_image, coronal_image, sagittal_image = _get_mri_images(
                 imgs, axial_coordinate, coronal_coordinate, sagittal_coordinate,
                 show_crosshairs)
 
-            window["axial_image"].update(data=convert_to_bytes(axial_image))
-            window["coronal_image"].update(data=convert_to_bytes(coronal_image))
-            window["sagittal_image"].update(data=convert_to_bytes(sagittal_image))
+            window["axial_image"].update(data=_convert_to_bytes(axial_image))
+            window["coronal_image"].update(data=_convert_to_bytes(coronal_image))
+            window["sagittal_image"].update(data=_convert_to_bytes(sagittal_image))
 
     window.close()
 

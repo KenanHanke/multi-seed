@@ -3,7 +3,7 @@
 """
 multiseed
 
-.. include:: ../../README.md
+.. include:: README.md
 """
 
 import logging
