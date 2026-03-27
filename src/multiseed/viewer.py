@@ -21,10 +21,19 @@ import io
 import sys
 import numpy as np
 import gzip
+import tkinter as tk
 from .image import Image
 
 # Scale factor for the images (nearest neighbor interpolation)
-SCALE_FACTOR = 1
+SCALE_FACTOR = 1  # Default value; will be updated based on screen height if possible
+try:
+    root = tk.Tk()
+    SCALE_FACTOR = root.winfo_screenheight() // 700
+finally:
+    try:
+        root.destroy()
+    except Exception:
+        pass
 
 
 ######################################################################
@@ -32,7 +41,7 @@ SCALE_FACTOR = 1
 
 def load_image(path):
     """
-    Load Analyze image from the specified file path.
+    Load an Analyze image from the specified file path.
 
     Args:
         path (str): Path to the Analyze image file.
