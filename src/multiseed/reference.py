@@ -1,4 +1,4 @@
-# multiseed/reference.py
+# src/multiseed/reference.py
 
 import numpy as np
 from numba import njit, prange

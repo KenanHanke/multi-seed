@@ -1,4 +1,4 @@
-# multiseed/ioutils.py
+# src/multiseed/ioutils.py
 
 from concurrent.futures import ThreadPoolExecutor
 import gc

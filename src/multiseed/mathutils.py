@@ -1,4 +1,4 @@
-# multiseed/mathutils.py
+# src/multiseed/mathutils.py
 
 import numpy as np
 from numba import njit

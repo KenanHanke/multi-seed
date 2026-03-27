@@ -1,4 +1,4 @@
-# multiseed/dataset.py
+# src/multiseed/dataset.py
 
 from collections.abc import Callable, Iterable, Iterator
 import logging

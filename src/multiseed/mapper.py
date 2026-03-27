@@ -1,4 +1,4 @@
-# multiseed/mapper.py
+# src/multiseed/mapper.py
 
 from abc import ABC, abstractmethod
 from typing import Iterable

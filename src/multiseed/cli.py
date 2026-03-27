@@ -1,4 +1,4 @@
-# multiseed/cli.py
+# src/multiseed/cli.py
 
 import argparse
 import logging

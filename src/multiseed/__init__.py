@@ -1,4 +1,10 @@
-# multiseed/__init__.py
+# src/multiseed/__init__.py
+
+"""
+multiseed
+
+.. include:: ../../README.md
+"""
 
 import logging
 from .image import Image, Mask

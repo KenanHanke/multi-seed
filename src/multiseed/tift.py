@@ -1,4 +1,4 @@
-# multiseed/tift.py
+# src/multiseed/tift.py
 
 TIFT_COMPATIBILITY_SCRIPT_CONTENTS = r"""
 #!/usr/bin/env python3

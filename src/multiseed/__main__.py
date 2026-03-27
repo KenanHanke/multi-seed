@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# multiseed/__main__.py
+# src/multiseed/__main__.py
 
 import sys
 from .cli import main

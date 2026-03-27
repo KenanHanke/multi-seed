@@ -1,4 +1,4 @@
-# multiseed/config.py
+# src/multiseed/config.py
 
 import glob
 import os

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# multiseed/viewer.py
+# src/multiseed/viewer.py
 
 """
 
