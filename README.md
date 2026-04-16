@@ -8,7 +8,7 @@ In practice, it:
 2. builds one combined brain mask from all non-zero voxels,
 3. samples random seed locations inside that mask,
 4. turns each voxel into a vector of seed-correlation values,
-5. reduces those vectors with PCA or ICA, and
+5. reduces those vectors with Factor Analysis, PCA or ICA, and
 6. writes one 3D map per extracted network/component for every dataset.
 
 Because the mask, seed set, and reduction model are built jointly across all cohorts, the resulting feature maps are directly comparable across subjects/datasets.
@@ -50,7 +50,7 @@ The `multiseed` library exposes an extensive API encompassing almost all parts o
 ```ini
 N_SEEDS = 1000
 SEED_RADIUS = 10
-REDUCTION_ALGORITHM = PCA
+REDUCTION_ALGORITHM = FactorAnalysis
 RESULTS_FOLDER = results
 
 [Controls]

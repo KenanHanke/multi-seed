@@ -11,6 +11,8 @@ from .reference import ReferenceBuilder
 
 def name_to_mapper_class(mapper_name) -> type['FeatureMapper']:
     match mapper_name:
+        case "FactorAnalysis":
+            return FactorAnalysisMapper
         case "PCA":
             return PCAMapper
         case "ICA":
@@ -129,6 +131,18 @@ class FeatureMapper(ABC):
         """
         pass
 
+
+class FactorAnalysisMapper(FeatureMapper):
+    """
+    A mapping that performs factor analysis on the dataset. No prior standardization
+    is performed because all dimensions are correlation coefficients.
+
+    Uses sklearn's FactorAnalysis implementation.
+    """
+
+    @property
+    def reduction_impl(self):
+        return sklearn.decomposition.FactorAnalysis
 
 class PCAMapper(FeatureMapper):
     """

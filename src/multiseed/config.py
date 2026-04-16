@@ -39,11 +39,11 @@ PARALLEL_IO = FALSE
 N_SEEDS = 1000                 # Number of seed regions to use for analysis
 SEED_RADIUS = 10               # Seed radius in voxels
 
-# Parameters for the reduction algorithm
-REDUCTION_ALGORITHM = PCA      # See documentation for available algorithms
-N_FEATURES = 20                # Number of dimensions kept during reduction
-N_SAMPLES_PER_DATASET = 5000   # Number of sample voxels per dataset to use
-                               #    when calibrating reduction algorithm
+# Parameters for the reduction model
+REDUCTION_ALGORITHM = FactorAnalysis # See documentation for available models
+N_FEATURES = 20                      # Number of dimensions kept during reduction
+N_SAMPLES_PER_DATASET = 5000         # Number of sample voxels per dataset to use
+                                     # when calibrating reduction model
 
 # The folder at the following path will be used to store the resulting
 # networks for each dataset. It will be created if it does not exist.
