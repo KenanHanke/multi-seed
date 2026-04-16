@@ -1,6 +1,7 @@
 # src/multiseed/ioutils.py
 
 from concurrent.futures import ThreadPoolExecutor
+from collections import deque
 import gc
 from typing import Iterable
 import numpy as np
@@ -88,6 +89,35 @@ def save_image(image: Image, path):
     nib.save(img, path)
 
 
+def _map_with_buffersize(executor, fn, iterable, buffersize):
+    """
+    Necessary because Python versions <3.14 don't have a buffersize argument
+    for concurrent.futures.Executor.map
+    """
+    if buffersize <= 0:
+        raise ValueError("buffersize must be >= 1")
+
+    it = iter(iterable)
+    pending = deque()
+
+    # Fill initial buffer
+    for _ in range(buffersize):
+        try:
+            pending.append(executor.submit(fn, next(it)))
+        except StopIteration:
+            break
+
+    # Yield in input order, refilling as we go
+    while pending:
+        fut = pending.popleft()
+        yield fut.result()   # preserves input order
+
+        try:
+            pending.append(executor.submit(fn, next(it)))
+        except StopIteration:
+            pass
+
+
 def load_dataset(folder_path):
     """
     Load dataset of images in the Analyze format from the specified
@@ -126,14 +156,16 @@ def load_dataset(folder_path):
         image_paths = match_candidates
 
     n_images = len(image_paths)
-    
+    buffersize = min(64, (os.cpu_count() or 1)*4)  # reasonable memory-performance tradeoff
+
     # load images
-    for i, image_path in enumerate(image_paths):
-        image = load_image(image_path)
-        if i == 0:
-            # Initialize the dataset with the first image's dimensions and dtype
-            dataset = Dataset(image.dimensions, n_images, dtype=image.dtype)
-        dataset[i] = image
+    with ThreadPoolExecutor() as executor:
+        images = _map_with_buffersize(executor, load_image, image_paths, buffersize)
+        for i, image in enumerate(images):
+            if i == 0:
+                # Initialize the dataset with the first image's dimensions and dtype
+                dataset = Dataset(image.dimensions, n_images, dtype=image.dtype)
+            dataset[i] = image
 
     return dataset
 
