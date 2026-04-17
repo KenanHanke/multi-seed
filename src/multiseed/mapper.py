@@ -7,12 +7,15 @@ import sklearn.decomposition
 import logging
 from .dataset import Dataset
 from .reference import ReferenceBuilder
+from . import mathutils
 
 
 def name_to_mapper_class(mapper_name) -> type['FeatureMapper']:
     match mapper_name:
         case "FactorAnalysis":
             return FactorAnalysisMapper
+        case "AbsNMF":
+            return AbsNMFMapper
         case "PCA":
             return PCAMapper
         case "ICA":
@@ -143,6 +146,11 @@ class FactorAnalysisMapper(FeatureMapper):
     @property
     def reduction_impl(self):
         return sklearn.decomposition.FactorAnalysis
+
+class AbsNMFMapper(FeatureMapper):
+    @property
+    def reduction_impl(self):
+        return mathutils.AbsNMF
 
 class PCAMapper(FeatureMapper):
     """

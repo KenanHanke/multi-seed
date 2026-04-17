@@ -2,6 +2,7 @@
 
 import numpy as np
 from numba import njit
+import sklearn.decomposition
 
 
 @njit
@@ -103,4 +104,25 @@ class PCA:
         # the order of the arguments seems backwards, but it's correct
         # because the vectors are horizontal and we're therefore
         # essentially dealing with transposed matrices (AB=C <=> BtAt=Ct)
-        return np.dot(X, self.components)
+        return np.dot(X, self.components) # type: ignore
+
+
+class AbsNMF:
+    """
+    A wrapper for sklearn.decomposition.NMF that fits to the absolute
+    values of X instead of X itself.
+    """
+
+    def __init__(self, n_components):
+        self.n_components = n_components
+        self.model = sklearn.decomposition.NMF(
+            n_components=n_components,
+            init='nndsvda',
+            max_iter=1000,
+        )
+
+    def fit(self, X):
+        self.model.fit(np.abs(X))
+
+    def transform(self, X):
+        return self.model.transform(np.abs(X))

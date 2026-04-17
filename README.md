@@ -8,7 +8,7 @@ In practice, it:
 2. builds one combined brain mask from all non-zero voxels,
 3. samples random seed locations inside that mask,
 4. turns each voxel into a vector of seed-correlation values,
-5. reduces those vectors with Factor Analysis, PCA or ICA, and
+5. reduces those vectors with factor analysis, absolute-value-based non-negative matrix factorization, principal component analysis or independent component analysis, and
 6. writes one 3D map per extracted network/component for every dataset.
 
 Because the mask, seed set, and reduction model are built jointly across all cohorts, the resulting feature maps are directly comparable across subjects/datasets.
@@ -60,6 +60,8 @@ RESULTS_FOLDER = results
 [Patients]
 /data/patients/*
 ```
+
+Available models are `FactorAnalysis`, `AbsNMF`, `PCA`, `ICA`
 
 Each dataset is one folder containing the 3D volumes from a single scan. Supported image formats are:
 

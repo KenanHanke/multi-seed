@@ -6,6 +6,7 @@ from typing import Any
 import functools
 import operator
 import numpy as np
+import logging
 from .image import Image
 from .reference import ReferenceBuilder
 from .ioutils import save_image, load_datasets_lazy
@@ -335,6 +336,7 @@ class Config:
 
         internal_result_dirs = sum(cohort_internal_result_dirs.values(), [])
 
+        logging.info("Normalizing subjects jointly per feature...")
         for i in range(n_features):
 
             def image_iter_func():
@@ -360,6 +362,7 @@ class Config:
                 image.save(os.path.join(normalized_result_dir, f"{i}.npz"))
 
         if results_folder:
+            logging.info("Building external results folder...")
             for network in range(n_features):
                 network_folder_name = f"network_{network + 1:03d}"
                 image_sum = None
